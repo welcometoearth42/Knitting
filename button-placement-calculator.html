@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Button Band Placement Calculator</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f5f3ee;
+    color: #1a1a18;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem 4rem;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  header h1 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: #1a1a18;
+    margin-bottom: 0.4rem;
+  }
+
+  header p {
+    font-size: 0.9rem;
+    color: #6b6b67;
+    line-height: 1.6;
+  }
+
+  .card {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 0.5px solid #d8d6cf;
+    padding: 2rem;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+
+  .sec-title {
+    font-size: 11px;
+    font-weight: 500;
+    color: #9b9994;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 10px;
+  }
+
+  .input-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 1.5rem;
+  }
+
+  .field { display: flex; flex-direction: column; gap: 5px; }
+
+  .field label {
+    font-size: 13px;
+    color: #6b6b67;
+  }
+
+  .field input {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #1a1a18;
+    border: 0.5px solid #d8d6cf;
+    border-radius: 10px;
+    padding: 9px 12px;
+    background: #fafaf8;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    -moz-appearance: textfield;
+    width: 100%;
+  }
+
+  .field input::-webkit-inner-spin-button,
+  .field input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+  .field input:focus {
+    border-color: #7f77dd;
+    box-shadow: 0 0 0 3px rgba(127,119,221,0.12);
+  }
+
+  .hint {
+    font-size: 12px;
+    color: #9b9994;
+    background: #f5f3ee;
+    border-radius: 8px;
+    padding: 10px 13px;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+  }
+
+  .divider {
+    border: none;
+    border-top: 0.5px solid #e8e6e0;
+    margin: 1.5rem 0;
+  }
+
+  .warning {
+    font-size: 13px;
+    color: #8b2e2e;
+    background: #fcebeb;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 1rem;
+    display: none;
+    line-height: 1.5;
+  }
+
+  .results-area { display: none; }
+
+  .main-layout {
+    display: grid;
+    grid-template-columns: 1fr 90px;
+    gap: 24px;
+    align-items: start;
+  }
+
+  .left { min-width: 0; }
+
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 1.25rem;
+  }
+
+  .metric {
+    background: #f5f3ee;
+    border-radius: 10px;
+    padding: 10px 11px;
+  }
+
+  .metric .lbl {
+    font-size: 10px;
+    color: #9b9994;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .metric .num {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1a1a18;
+    margin-top: 2px;
+  }
+
+  .metric .unit {
+    font-size: 11px;
+    color: #9b9994;
+    margin-left: 2px;
+    font-weight: 400;
+  }
+
+  .steps-wrap {
+    border: 0.5px solid #d8d6cf;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .steps-header {
+    display: grid;
+    grid-template-columns: 28px 1fr 1fr;
+    padding: 8px 13px;
+    background: #f5f3ee;
+    font-size: 10px;
+    color: #9b9994;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    gap: 6px;
+  }
+
+  .step-row {
+    display: grid;
+    grid-template-columns: 28px 1fr 1fr;
+    padding: 9px 13px;
+    border-top: 0.5px solid #e8e6e0;
+    font-size: 13px;
+    align-items: center;
+    gap: 6px;
+    color: #1a1a18;
+  }
+
+  .btn-dot {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: #7f77dd;
+    border: 2px solid #534ab7;
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  .right {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 4px;
+  }
+
+  #band-svg { width: 90px; }
+
+  footer {
+    margin-top: 2.5rem;
+    font-size: 0.8rem;
+    color: #b4b2a9;
+    text-align: center;
+  }
+
+  @media (max-width: 480px) {
+    .card { padding: 1.25rem; }
+    header h1 { font-size: 1.4rem; }
+    .main-layout { grid-template-columns: 1fr 70px; gap: 14px; }
+    .metrics { grid-template-columns: 1fr 1fr; }
+    .metrics .metric:last-child { grid-column: span 2; }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    body { background: #1a1a18; color: #e8e6e0; }
+    header h1 { color: #e8e6e0; }
+    header p { color: #9b9994; }
+    .card { background: #242422; border-color: #3a3a37; box-shadow: none; }
+    .field input { background: #1a1a18; border-color: #3a3a37; color: #e8e6e0; }
+    .field input:focus { border-color: #7f77dd; }
+    .hint { background: #1a1a18; color: #6b6b67; }
+    .metric { background: #1a1a18; }
+    .metric .num { color: #e8e6e0; }
+    .divider { border-color: #3a3a37; }
+    .steps-wrap { border-color: #3a3a37; }
+    .steps-header { background: #1a1a18; }
+    .step-row { border-color: #3a3a37; color: #e8e6e0; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Button band placement</h1>
+  <p>Horizontal knitting &mdash; spaces buttonholes evenly across a band</p>
+</header>
+
+<div class="card">
+  <div class="sec-title">Button band</div>
+  <div class="input-grid">
+    <div class="field">
+      <label>Total stitches in band</label>
+      <input type="number" id="total" value="120" min="1" inputmode="numeric" oninput="calc()" />
+    </div>
+    <div class="field">
+      <label>Number of buttons</label>
+      <input type="number" id="buttons" value="6" min="2" max="40" inputmode="numeric" oninput="calc()" />
+    </div>
+    <div class="field">
+      <label>Stitches per buttonhole</label>
+      <input type="number" id="bhole" value="3" min="1" inputmode="numeric" oninput="calc()" />
+    </div>
+  </div>
+
+  <div class="sec-title">Edge stitches</div>
+  <div class="input-grid">
+    <div class="field">
+      <label>Stitches before first buttonhole</label>
+      <input type="number" id="before" value="4" min="0" inputmode="numeric" oninput="calc()" />
+    </div>
+    <div class="field">
+      <label>Stitches after last buttonhole</label>
+      <input type="number" id="after" value="4" min="0" inputmode="numeric" oninput="calc()" />
+    </div>
+  </div>
+
+  <div class="hint">
+    Each buttonhole is worked over the stated number of stitches in a single row.
+    Gaps are the plain stitches knitted between buttonholes. If the band doesn't divide evenly,
+    the extra stitch is spread across the first gaps.
+  </div>
+
+  <div class="warning" id="warning"></div>
+
+  <div class="results-area" id="results">
+    <div class="divider"></div>
+    <div class="main-layout">
+      <div class="left">
+        <div class="metrics">
+          <div class="metric">
+            <div class="lbl">Gap between</div>
+            <div class="num" id="m-gap">—<span class="unit">st</span></div>
+          </div>
+          <div class="metric">
+            <div class="lbl">First hole at</div>
+            <div class="num" id="m-first">—<span class="unit">st</span></div>
+          </div>
+          <div class="metric">
+            <div class="lbl">Extra st spread</div>
+            <div class="num" id="m-rem">—<span class="unit">gaps</span></div>
+          </div>
+        </div>
+
+        <div class="steps-wrap">
+          <div class="steps-header">
+            <span>#</span><span>Work hole after st</span><span>Resume at st</span>
+          </div>
+          <div id="steps-body"></div>
+        </div>
+      </div>
+
+      <div class="right">
+        <svg id="band-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>Horizontal button band calculator &middot; stitches only</footer>
+
+<script>
+function calc() {
+  const total = parseInt(document.getElementById('total').value) || 0;
+  const buttons = parseInt(document.getElementById('buttons').value) || 0;
+  const bhole = parseInt(document.getElementById('bhole').value) || 0;
+  const before = parseInt(document.getElementById('before').value) || 0;
+  const after = parseInt(document.getElementById('after').value) || 0;
+  const warn = document.getElementById('warning');
+  const res = document.getElementById('results');
+
+  warn.style.display = 'none';
+  res.style.display = 'none';
+
+  if (!total || !buttons || !bhole) return;
+
+  const usable = total - before - after - (buttons * bhole);
+  if (usable < 0) {
+    const need = before + after + buttons * bhole;
+    warn.textContent = `Not enough stitches — the buttonholes and edges need ${need} sts but your band has ${total}. Try fewer buttons, a smaller buttonhole, or more stitches.`;
+    warn.style.display = 'block'; return;
+  }
+  if (buttons < 2) {
+    warn.textContent = 'Enter at least 2 buttons.';
+    warn.style.display = 'block'; return;
+  }
+
+  const gaps = buttons - 1;
+  const gapBase = Math.floor(usable / gaps);
+  const remainder = usable - gapBase * gaps;
+
+  document.getElementById('m-gap').innerHTML = `${gapBase}${remainder > 0 ? '&ndash;' + (gapBase + 1) : ''}<span class="unit">st</span>`;
+  document.getElementById('m-first').innerHTML = `${before + 1}<span class="unit">st</span>`;
+  document.getElementById('m-rem').innerHTML = `${remainder}<span class="unit"> of ${gaps}</span>`;
+
+  const positions = [];
+  let cursor = before;
+  for (let i = 0; i < buttons; i++) {
+    positions.push({ start: cursor, end: cursor + bhole });
+    if (i < buttons - 1) cursor += bhole + gapBase + (i < remainder ? 1 : 0);
+  }
+  for (let i = 0; i < buttons - 1; i++) {
+    positions[i].gap = gapBase + (i < remainder ? 1 : 0);
+  }
+  positions[buttons - 1].gap = null;
+
+  drawBand(positions, total, before, after, bhole);
+  drawSteps(positions);
+  res.style.display = 'block';
+}
+
+function drawBand(positions, total, before, after, bhole) {
+  const svg = document.getElementById('band-svg');
+  const svgW = 90;
+  const padTop = 22, padBot = 22;
+  const bandH = Math.max(280, positions.length * 48 + 60);
+  const svgH = bandH + padTop + padBot;
+  svg.setAttribute('viewBox', `0 0 ${svgW} ${svgH}`);
+  svg.setAttribute('height', svgH);
+
+  const bandX = 26, bandW = 22;
+  const scale = bandH / total;
+  let html = '';
+
+  html += `<rect x="${bandX}" y="${padTop}" width="${bandW}" height="${bandH}" rx="4" fill="#f5f3ee" stroke="#d8d6cf" stroke-width="0.5"/>`;
+
+  if (before > 0) {
+    const y = padTop + before * scale;
+    html += `<line x1="${bandX}" y1="${y}" x2="${bandX+bandW}" y2="${y}" stroke="#d8d6cf" stroke-width="0.5" stroke-dasharray="3,2"/>`;
+  }
+  if (after > 0) {
+    const y = padTop + (total - after) * scale;
+    html += `<line x1="${bandX}" y1="${y}" x2="${bandX+bandW}" y2="${y}" stroke="#d8d6cf" stroke-width="0.5" stroke-dasharray="3,2"/>`;
+  }
+
+  positions.forEach((p, i) => {
+    const y = padTop + p.start * scale;
+    const h = Math.max(bhole * scale, 7);
+    const cx = bandX + bandW / 2;
+    const cy = y + h / 2;
+
+    html += `<rect x="${bandX+3}" y="${y}" width="${bandW-6}" height="${h}" rx="2" fill="#eeedfe" stroke="#7f77dd" stroke-width="1"/>`;
+    html += `<circle cx="${cx}" cy="${cy}" r="4.5" fill="#7f77dd"/>`;
+    html += `<circle cx="${cx}" cy="${cy}" r="2" fill="#eeedfe"/>`;
+    html += `<text x="${bandX-4}" y="${cy+4}" text-anchor="end" font-size="10" fill="#534ab7" font-family="-apple-system,system-ui,sans-serif" font-weight="600">${i+1}</text>`;
+
+    if (p.gap !== null) {
+      const nextY = padTop + positions[i+1].start * scale;
+      const gapMid = y + h + (nextY - y - h) / 2;
+      const rx = bandX + bandW + 4;
+      html += `<line x1="${rx}" y1="${y+h+2}" x2="${rx}" y2="${nextY-2}" stroke="#d8d6cf" stroke-width="0.5"/>`;
+      html += `<line x1="${rx-2}" y1="${y+h+2}" x2="${rx+2}" y2="${y+h+2}" stroke="#b4b2a9" stroke-width="0.5"/>`;
+      html += `<line x1="${rx-2}" y1="${nextY-2}" x2="${rx+2}" y2="${nextY-2}" stroke="#b4b2a9" stroke-width="0.5"/>`;
+      html += `<text x="${rx+5}" y="${gapMid+4}" font-size="9" fill="#9b9994" font-family="-apple-system,system-ui,sans-serif">${p.gap}</text>`;
+    }
+  });
+
+  html += `<text x="${bandX+bandW/2}" y="${padTop-7}" text-anchor="middle" font-size="9" fill="#9b9994" font-family="-apple-system,system-ui,sans-serif">cast on</text>`;
+  html += `<text x="${bandX+bandW/2}" y="${padTop+bandH+16}" text-anchor="middle" font-size="9" fill="#9b9994" font-family="-apple-system,system-ui,sans-serif">cast off</text>`;
+
+  svg.innerHTML = html;
+}
+
+function drawSteps(positions) {
+  let html = '';
+  positions.forEach((p, i) => {
+    html += `<div class="step-row">
+      <span><span class="btn-dot"></span></span>
+      <span>st ${p.start}</span>
+      <span>st ${p.end + 1}</span>
+    </div>`;
+  });
+  document.getElementById('steps-body').innerHTML = html;
+}
+
+calc();
+</script>
+</body>
+</html>
