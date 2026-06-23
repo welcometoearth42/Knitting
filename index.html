@@ -1,36 +1,85 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Welcome to Knitting</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Knitting — Pages index</title>
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial; padding: 2rem; line-height: 1.6; }
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; padding: 2rem; max-width: 900px; margin: 0 auto; }
     header { border-bottom: 1px solid #eee; margin-bottom: 1rem; }
-    .container { max-width: 800px; margin: 0 auto; }
-    pre { background:#f6f8fa; padding:10px; border-radius:6px; overflow:auto }
+    ul { line-height: 1.8; }
+    .meta { color: #666; font-size: 0.9rem; }
+    .note { background:#f6f8fa; padding:10px; border-radius:6px; margin-top:1rem; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>Welcome to Knitting</h1>
-      <p>Hi welcometoearth42 — this is a simple HTML page you can access from anywhere once the file is in your repository.</p>
-    </header>
+  <header>
+    <h1>Site index — Knitting</h1>
+    <p class="meta">Automatically lists HTML pages in this repository branch (main).</p>
+  </header>
 
-    <section>
-      <p>This repository file is <strong>index.html</strong>. To view it in a browser you have two easy options:</p>
-      <ol>
-        <li>Use GitHub Pages (recommended) to serve this repository as a website. See the repository Settings → Pages and choose the branch to publish.</li>
-        <li>Open the raw file URL directly in your browser: <code>https://raw.githubusercontent.com/welcometoearth42/Knitting/main/index.html</code> (replace <code>main</code> with your default branch if different).</li>
-      </ol>
+  <section>
+    <p>Pages found in the repository:</p>
+    <ul id="pagesList">
+      <li>Loading…</li>
+    </ul>
 
-      <p>Example content:</p>
-      <pre>&lt;h2&gt;Hello from GitHub!&lt;/h2&gt;
-&lt;p&gt;This page was added to the repository so you can test access.&lt;/p&gt;</pre>
+    <div class="note">
+      If you do not see pages, wait a minute for Pages to publish or make sure files are committed to the <code>main</code> branch at the repo root.
+    </div>
+  </section>
 
-      <p>If you want, I can also enable a GitHub Pages workflow file that will publish this site automatically—tell me if you want that.</p>
-    </section>
-  </div>
+  <script>
+    (async function() {
+      const owner = 'welcometoearth42';
+      const repo = 'Knitting';
+      const branch = 'main';
+
+      // Base URL where Pages will serve files
+      const pagesBase = `https://${owner}.github.io/${repo}/`;
+
+      // GitHub API: list the repository tree recursively
+      const apiUrl = `https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`;
+
+      const listEl = document.getElementById('pagesList');
+
+      try {
+        const res = await fetch(apiUrl);
+        if (!res.ok) throw new Error(`GitHub API returned ${res.status}`);
+        const json = await res.json();
+
+        if (!json.tree) throw new Error('No tree data returned');
+
+        // find all .html files except index.html (case-insensitive)
+        const pages = json.tree
+          .filter(item => item.type === 'blob' && item.path.toLowerCase().endsWith('.html'))
+          .filter(item => item.path.split('/').pop().toLowerCase() !== 'index.html')
+          .sort((a,b) => a.path.localeCompare(b.path));
+
+        listEl.innerHTML = '';
+
+        if (pages.length === 0) {
+          listEl.innerHTML = '<li>No HTML pages found (except index.html).</li>';
+          return;
+        }
+
+        pages.forEach(p => {
+          const path = p.path; // e.g. "about.html" or "pages/mypage.html"
+          const url = pagesBase + encodeURI(path);
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.href = url;
+          a.textContent = path;
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+          li.appendChild(a);
+          listEl.appendChild(li);
+        });
+      } catch (err) {
+        listEl.innerHTML = `<li>Error: ${err.message}. If this repo is private, automatic listing from the client is not allowed without a token.</li>`;
+        console.error(err);
+      }
+    })();
+  </script>
 </body>
 </html>
