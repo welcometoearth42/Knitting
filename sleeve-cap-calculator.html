@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sleeve Cap Shaping Calculator</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f5f3ee;
+    color: #1a1a18;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem 4rem;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  header h1 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: #1a1a18;
+    margin-bottom: 0.4rem;
+  }
+
+  header p {
+    font-size: 0.95rem;
+    color: #6b6b67;
+    line-height: 1.6;
+  }
+
+  .card {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 0.5px solid #d8d6cf;
+    padding: 2rem;
+    width: 100%;
+    max-width: 540px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+
+  .input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .field label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: #6b6b67;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+
+  .field input {
+    width: 100%;
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: #1a1a18;
+    border: 0.5px solid #d8d6cf;
+    border-radius: 10px;
+    padding: 10px 14px;
+    background: #fafaf8;
+    outline: none;
+    transition: border-color 0.15s;
+    -moz-appearance: textfield;
+  }
+
+  .field input::-webkit-inner-spin-button,
+  .field input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+  .field input:focus { border-color: #7f77dd; box-shadow: 0 0 0 3px rgba(127,119,221,0.12); }
+
+  .formula-note {
+    font-size: 0.82rem;
+    color: #9b9994;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    padding: 10px 14px;
+    background: #f5f3ee;
+    border-radius: 8px;
+  }
+
+  .formula-note strong { color: #6b6b67; font-weight: 500; }
+
+  .warning {
+    font-size: 0.875rem;
+    color: #8b2e2e;
+    background: #fcebeb;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 1rem;
+    display: none;
+    line-height: 1.5;
+  }
+
+  .results { display: none; }
+
+  .metric-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 1.25rem;
+  }
+
+  .metric {
+    background: #f5f3ee;
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+  }
+
+  .metric .lbl {
+    font-size: 0.8rem;
+    color: #9b9994;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .metric .num {
+    font-size: 2rem;
+    font-weight: 600;
+    margin-top: 2px;
+    color: #1a1a18;
+  }
+
+  .metric.highlight .num { color: #534ab7; }
+
+  .bar-wrap { margin-bottom: 1.5rem; }
+
+  .bar-label {
+    font-size: 0.8rem;
+    color: #9b9994;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+  }
+
+  .bar-track {
+    height: 30px;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    background: #ebe9e3;
+  }
+
+  .bar-2 {
+    background: #7f77dd;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 10px;
+    font-size: 12px;
+    color: #eeedfe;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: width 0.35s ease;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .bar-1 {
+    background: #b4b2a9;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 10px;
+    font-size: 12px;
+    color: #2c2c2a;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: width 0.35s ease;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .divider {
+    border: none;
+    border-top: 0.5px solid #e8e6e0;
+    margin: 1.5rem 0;
+  }
+
+  .schedule-wrap {
+    border: 0.5px solid #d8d6cf;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .schedule-header {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 2fr;
+    padding: 9px 14px;
+    background: #f5f3ee;
+    font-size: 0.78rem;
+    color: #9b9994;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .schedule-row {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 2fr;
+    padding: 11px 14px;
+    border-top: 0.5px solid #e8e6e0;
+    font-size: 0.9rem;
+    align-items: center;
+  }
+
+  .schedule-row.total {
+    font-weight: 600;
+    background: #fafaf8;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 500;
+  }
+
+  .badge-2 { background: #eeedfe; color: #534ab7; }
+  .badge-1 { background: #e8e6e0; color: #5f5e5a; }
+
+  .tip {
+    font-size: 0.85rem;
+    color: #9b9994;
+    line-height: 1.7;
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 0.5px solid #e8e6e0;
+  }
+
+  footer {
+    margin-top: 2.5rem;
+    font-size: 0.8rem;
+    color: #b4b2a9;
+    text-align: center;
+  }
+
+  @media (max-width: 480px) {
+    .card { padding: 1.25rem; }
+    .input-row { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    header h1 { font-size: 1.4rem; }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    body { background: #1a1a18; color: #e8e6e0; }
+    .card { background: #242422; border-color: #3a3a37; box-shadow: none; }
+    .field input { background: #1a1a18; border-color: #3a3a37; color: #e8e6e0; }
+    .field input:focus { border-color: #7f77dd; }
+    .formula-note { background: #1a1a18; }
+    .formula-note strong { color: #9b9994; }
+    .metric { background: #1a1a18; }
+    .metric .num { color: #e8e6e0; }
+    .bar-track { background: #2c2c2a; }
+    .divider { border-color: #3a3a37; }
+    .schedule-wrap { border-color: #3a3a37; }
+    .schedule-header { background: #1a1a18; }
+    .schedule-row { border-color: #3a3a37; }
+    .schedule-row.total { background: #1f1f1d; }
+    .tip { border-color: #3a3a37; }
+    .badge-1 { background: #3a3a37; color: #b4b2a9; }
+    header h1 { color: #e8e6e0; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Sleeve cap shaping</h1>
+  <p>Calculate how to distribute decreases across rows</p>
+</header>
+
+<div class="card">
+  <div class="input-row">
+    <div class="field">
+      <label for="stitches">Stitches to decrease (S)</label>
+      <input type="number" id="stitches" min="1" value="24" inputmode="numeric" />
+    </div>
+    <div class="field">
+      <label for="rows">Rows available (R)</label>
+      <input type="number" id="rows" min="1" value="16" inputmode="numeric" />
+    </div>
+  </div>
+
+  <div class="formula-note">
+    Every row gets at least 1 decrease. The remaining <strong>S − R</strong> stitches overflow into that many rows, giving them 2 decreases each.
+    Requires <strong>R ≤ S ≤ 2R</strong>.
+  </div>
+
+  <div class="warning" id="warning"></div>
+
+  <div class="results" id="results">
+    <div class="metric-row">
+      <div class="metric highlight">
+        <div class="lbl">Rows with 2 decreases</div>
+        <div class="num" id="rows2">—</div>
+      </div>
+      <div class="metric">
+        <div class="lbl">Rows with 1 decrease</div>
+        <div class="num" id="rows1">—</div>
+      </div>
+    </div>
+
+    <div class="bar-wrap">
+      <div class="bar-label">Row distribution</div>
+      <div class="bar-track">
+        <div class="bar-2" id="bar2seg"></div>
+        <div class="bar-1" id="bar1seg"></div>
+      </div>
+    </div>
+
+    <div class="schedule-wrap">
+      <div class="schedule-header">
+        <span>Phase</span><span>Rows</span><span>Stitches removed</span>
+      </div>
+      <div id="schedule-body"></div>
+    </div>
+
+    <p class="tip">
+      Work 2-decrease rows first (or alternate them evenly through the cap) — whichever your pattern specifies.
+      Each decrease row removes one stitch at each end of the row.
+    </p>
+  </div>
+</div>
+
+<footer>Made with Claude &middot; sleeve cap shaping formula</footer>
+
+<script>
+  function calc() {
+    const S = parseInt(document.getElementById('stitches').value) || 0;
+    const R = parseInt(document.getElementById('rows').value) || 0;
+    const warn = document.getElementById('warning');
+    const res = document.getElementById('results');
+    const sb = document.getElementById('schedule-body');
+
+    warn.style.display = 'none';
+    res.style.display = 'none';
+
+    if (!S || !R || S <= 0 || R <= 0) return;
+
+    if (S < R) {
+      warn.textContent = `S must be ≥ R (you entered S = ${S}, R = ${R}). You have more rows than stitches to decrease — try increasing S or reducing R.`;
+      warn.style.display = 'block'; return;
+    }
+    if (S > 2 * R) {
+      warn.textContent = `S must be ≤ 2R (you entered S = ${S}, 2R = ${2*R}). Not enough rows — try increasing R or reducing S.`;
+      warn.style.display = 'block'; return;
+    }
+
+    const rows2 = S - R;
+    const rows1 = 2 * R - S;
+
+    document.getElementById('rows2').textContent = rows2;
+    document.getElementById('rows1').textContent = rows1;
+
+    const pct2 = Math.round((rows2 / R) * 100);
+    const b2 = document.getElementById('bar2seg');
+    const b1 = document.getElementById('bar1seg');
+    b2.style.width = pct2 + '%';
+    b1.style.width = (100 - pct2) + '%';
+    b2.textContent = rows2 > 0 && pct2 > 15 ? `${rows2} × 2` : '';
+    b1.textContent = rows1 > 0 && (100 - pct2) > 15 ? `${rows1} × 1` : '';
+
+    let html = '';
+    if (rows2 > 0) {
+      html += `<div class="schedule-row"><span><span class="badge badge-2">2 per row</span></span><span>${rows2}</span><span>${rows2} × 2 = ${rows2 * 2} sts</span></div>`;
+    }
+    if (rows1 > 0) {
+      html += `<div class="schedule-row"><span><span class="badge badge-1">1 per row</span></span><span>${rows1}</span><span>${rows1} × 1 = ${rows1} sts</span></div>`;
+    }
+    html += `<div class="schedule-row total"><span>Total</span><span>${R}</span><span>${S} sts</span></div>`;
+    sb.innerHTML = html;
+
+    res.style.display = 'block';
+  }
+
+  document.getElementById('stitches').addEventListener('input', calc);
+  document.getElementById('rows').addEventListener('input', calc);
+  calc();
+</script>
+</body>
+</html>
