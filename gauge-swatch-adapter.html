@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gauge Swatch Adapter</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f5f3ee;
+    color: #1a1a18;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem 4rem;
+  }
+
+  header { text-align: center; margin-bottom: 2.5rem; }
+  header h1 { font-size: 1.75rem; font-weight: 600; letter-spacing: -0.02em; color: #1a1a18; margin-bottom: 0.4rem; }
+  header p { font-size: 0.9rem; color: #6b6b67; line-height: 1.6; }
+
+  .card { background: #ffffff; border-radius: 16px; border: 0.5px solid #d8d6cf; padding: 2rem; width: 100%; max-width: 580px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 1.5rem; }
+
+  .panel { border: 0.5px solid #e8e6e0; border-radius: 12px; padding: 14px 15px; }
+  .panel-inner { display: flex; align-items: flex-start; gap: 12px; }
+  .panel-fields { flex: 1; min-width: 0; }
+  .panel-title { font-size: 11px; font-weight: 500; color: #993C1D; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 10px; }
+
+  .field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label { font-size: 12px; color: #6b6b67; }
+  .field input, .field select {
+    font-size: 15px; padding: 7px 10px; border-radius: 8px;
+    border: 0.5px solid #d8d6cf; background: #fafaf8; color: #1a1a18;
+    width: 100%; outline: none; transition: border-color 0.15s, box-shadow 0.15s;
+    -moz-appearance: textfield;
+  }
+  .field input::-webkit-inner-spin-button, .field input::-webkit-outer-spin-button { -webkit-appearance: none; }
+  .field input:focus, .field select:focus { border-color: #D85A30; box-shadow: 0 0 0 3px rgba(216,90,48,0.12); }
+
+  .swatch-wrap { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; padding-top: 2px; }
+  .swatch-label { font-size: 10px; color: #9b9994; }
+
+  .divider { border: none; border-top: 0.5px solid #e8e6e0; margin: 1.5rem 0; }
+
+  .output-title { font-size: 11px; font-weight: 500; color: #993C1D; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 12px; }
+
+  .output-toggles { display: flex; gap: 8px; margin-bottom: 14px; }
+  .otog {
+    flex: 1; padding: 7px 10px; border-radius: 8px; border: 0.5px solid #d8d6cf;
+    background: #fafaf8; color: #6b6b67; font-size: 13px; cursor: pointer;
+    text-align: center; transition: all 0.15s;
+  }
+  .otog.active { background: #FAECE7; color: #993C1D; border-color: #F0997B; font-weight: 500; }
+
+  .input-row { display: grid; gap: 10px; margin-bottom: 12px; }
+
+  .result-area {
+    background: #f5f3ee; border-radius: 10px; padding: 14px 16px; min-height: 64px;
+  }
+  .result-label { font-size: 11px; color: #6b6b67; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .result-num { font-size: 38px; font-weight: 600; color: #1a1a18; line-height: 1; }
+  .result-unit { font-size: 15px; color: #9b9994; margin-left: 4px; font-weight: 400; }
+  .result-note { font-size: 12px; color: #6b6b67; margin-top: 6px; line-height: 1.5; }
+  .result-note strong { color: #1a1a18; font-weight: 500; }
+  .placeholder { font-size: 13px; color: #9b9994; font-style: italic; }
+
+  .ratio-bar-wrap { margin-top: 10px; }
+  .ratio-bar-label { font-size: 11px; color: #9b9994; margin-bottom: 5px; }
+  .ratio-track { height: 5px; background: #e8e6e0; border-radius: 3px; overflow: hidden; }
+  .ratio-fill { height: 100%; border-radius: 3px; background: #D85A30; transition: width 0.3s; }
+
+  footer { margin-top: 2.5rem; font-size: 0.8rem; color: #b4b2a9; text-align: center; }
+
+  @media (max-width: 480px) {
+    .card { padding: 1.25rem; }
+    header h1 { font-size: 1.4rem; }
+    .two-col { grid-template-columns: 1fr; }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    body { background: #1a1a18; color: #e8e6e0; }
+    header h1 { color: #e8e6e0; }
+    header p, .swatch-label { color: #9b9994; }
+    .card { background: #242422; border-color: #3a3a37; box-shadow: none; }
+    .panel { border-color: #3a3a37; }
+    .field label, .ratio-bar-label, .placeholder { color: #9b9994; }
+    .field input { background: #1a1a18; border-color: #3a3a37; color: #e8e6e0; }
+    .otog { background: #1a1a18; border-color: #3a3a37; color: #9b9994; }
+    .otog.active { background: #3d1a0e; color: #F0997B; border-color: #7a2e16; }
+    .result-area { background: #1a1a18; }
+    .result-label { color: #9b9994; }
+    .result-num { color: #e8e6e0; }
+    .result-note { color: #9b9994; }
+    .result-note strong { color: #e8e6e0; }
+    .divider { border-color: #3a3a37; }
+    .ratio-track { background: #3a3a37; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Gauge swatch adapter</h1>
+  <p>Adjust pattern stitch and row counts to match your tension</p>
+</header>
+
+<div class="card">
+  <div class="two-col">
+    <div class="panel">
+      <div class="panel-title">Pattern gauge</div>
+      <div class="panel-inner">
+        <div class="panel-fields">
+          <div class="field">
+            <label>Stitches per 10cm</label>
+            <input type="number" id="p-st" value="18" min="1" oninput="update()" />
+          </div>
+          <div class="field">
+            <label>Rows per 10cm</label>
+            <input type="number" id="p-row" value="24" min="1" oninput="update()" />
+          </div>
+        </div>
+        <div class="swatch-wrap">
+          <svg width="54" height="54" viewBox="0 0 54 54" id="swatch-pattern"></svg>
+          <span class="swatch-label">10cm²</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">My swatch</div>
+      <div class="panel-inner">
+        <div class="panel-fields">
+          <div class="field">
+            <label>Stitches per 10cm</label>
+            <input type="number" id="m-st" value="17" min="1" oninput="update()" />
+          </div>
+          <div class="field">
+            <label>Rows per 10cm</label>
+            <input type="number" id="m-row" value="22" min="1" oninput="update()" />
+          </div>
+        </div>
+        <div class="swatch-wrap">
+          <svg width="54" height="54" viewBox="0 0 54 54" id="swatch-mine"></svg>
+          <span class="swatch-label">10cm²</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="output-title">Convert a pattern value</div>
+  <div class="output-toggles">
+    <div class="otog active" id="tog-st" onclick="setMode('st')">Stitches</div>
+    <div class="otog" id="tog-row" onclick="setMode('row')">Rows</div>
+    <div class="otog" id="tog-both" onclick="setMode('both')">Both</div>
+  </div>
+
+  <div id="input-st" class="input-row" style="grid-template-columns:1fr">
+    <div class="field" style="margin:0">
+      <label>Pattern stitch count</label>
+      <input type="number" id="in-st" value="200" min="1" oninput="update()" />
+    </div>
+  </div>
+  <div id="input-row" class="input-row" style="display:none;grid-template-columns:1fr">
+    <div class="field" style="margin:0">
+      <label>Pattern row count</label>
+      <input type="number" id="in-row" value="60" min="1" oninput="update()" />
+    </div>
+  </div>
+  <div id="input-both" class="input-row" style="display:none;grid-template-columns:1fr 1fr">
+    <div class="field" style="margin:0">
+      <label>Pattern stitch count</label>
+      <input type="number" id="in-st2" value="200" min="1" oninput="update()" />
+    </div>
+    <div class="field" style="margin:0">
+      <label>Pattern row count</label>
+      <input type="number" id="in-row2" value="60" min="1" oninput="update()" />
+    </div>
+  </div>
+
+  <div class="result-area" id="result-area">
+    <div class="placeholder">Fill in the fields above to see your adjusted count</div>
+  </div>
+
+  <div class="ratio-bar-wrap" id="ratio-wrap" style="display:none">
+    <div class="ratio-bar-label" id="ratio-label"></div>
+    <div class="ratio-track"><div class="ratio-fill" id="ratio-fill"></div></div>
+  </div>
+</div>
+
+<footer>Gauge swatch adapter &middot; stitches &amp; rows</footer>
+
+<script>
+let convMode = 'st';
+
+function setMode(m) {
+  convMode = m;
+  ['st','row','both'].forEach(k => {
+    document.getElementById('tog-'+k).className = 'otog' + (k===m ? ' active' : '');
+    document.getElementById('input-'+k).style.display = k===m ? 'grid' : 'none';
+  });
+  update();
+}
+
+function drawSwatch(svgId, sts, rows, highlight) {
+  const svg = document.getElementById(svgId);
+  const W = 54, H = 54, pad = 4;
+  const showSts = Math.min(sts, 10);
+  const showRows = Math.min(rows, 10);
+  const cellW = (W - pad*2) / showSts;
+  const cellH = (H - pad*2) / showRows;
+  const color = highlight ? '#D85A30' : '#9b9994';
+  const fillColor = highlight ? '#FAECE7' : '#f5f3ee';
+  let html = `<rect x="0" y="0" width="54" height="54" rx="5" fill="${fillColor}" stroke="${color}" stroke-width="1"/>`;
+  for (let r = 0; r < showRows; r++) {
+    for (let s = 0; s < showSts; s++) {
+      const cx = pad + s * cellW + cellW * 0.5;
+      const cy = pad + r * cellH + cellH * 0.5;
+      const vw = cellW * 0.55;
+      const vh = cellH * 0.65;
+      html += `<path d="M${cx},${cy-vh/2} L${cx-vw/2},${cy} L${cx},${cy+vh/2} L${cx+vw/2},${cy} Z" fill="${color}" opacity="0.5"/>`;
+    }
+  }
+  svg.innerHTML = html;
+}
+
+function update() {
+  const pSt  = parseFloat(document.getElementById('p-st').value)  || 0;
+  const pRow = parseFloat(document.getElementById('p-row').value) || 0;
+  const mSt  = parseFloat(document.getElementById('m-st').value)  || 0;
+  const mRow = parseFloat(document.getElementById('m-row').value) || 0;
+
+  drawSwatch('swatch-pattern', pSt||18, pRow||24, false);
+  drawSwatch('swatch-mine',    mSt||18, mRow||24, true);
+
+  const ra = document.getElementById('result-area');
+  const rw = document.getElementById('ratio-wrap');
+
+  if (!pSt || !pRow || !mSt || !mRow) {
+    ra.innerHTML = '<div class="placeholder">Fill in all gauge fields to continue</div>';
+    rw.style.display = 'none'; return;
+  }
+
+  const stRatio  = mSt  / pSt;
+  const rowRatio = mRow / pRow;
+  let html = '';
+
+  if (convMode === 'st') {
+    const inSt = parseFloat(document.getElementById('in-st').value) || 0;
+    if (!inSt) { ra.innerHTML = '<div class="placeholder">Enter a pattern stitch count above</div>'; rw.style.display='none'; return; }
+    const out  = Math.round(inSt * stRatio);
+    const diff = out - inSt;
+    html = `<div class="result-label">Your adjusted stitch count</div>
+      <div><span class="result-num">${out}</span><span class="result-unit">sts</span></div>
+      <div class="result-note">Pattern calls for ${inSt} sts &rarr; you cast on <strong>${out}</strong> (${diff >= 0 ? '+' : ''}${diff} sts). Ratio: ${stRatio.toFixed(3)}&times;</div>`;
+    rw.style.display = 'block';
+    document.getElementById('ratio-label').textContent = `Stitch gauge: your swatch is ${(stRatio*100).toFixed(1)}% of pattern`;
+    document.getElementById('ratio-fill').style.width = Math.min(Math.max(stRatio,0)*100, 100) + '%';
+
+  } else if (convMode === 'row') {
+    const inRow = parseFloat(document.getElementById('in-row').value) || 0;
+    if (!inRow) { ra.innerHTML = '<div class="placeholder">Enter a pattern row count above</div>'; rw.style.display='none'; return; }
+    const out  = Math.round(inRow * rowRatio);
+    const diff = out - inRow;
+    html = `<div class="result-label">Your adjusted row count</div>
+      <div><span class="result-num">${out}</span><span class="result-unit">rows</span></div>
+      <div class="result-note">Pattern calls for ${inRow} rows &rarr; you knit <strong>${out}</strong> (${diff >= 0 ? '+' : ''}${diff} rows). Ratio: ${rowRatio.toFixed(3)}&times;</div>`;
+    rw.style.display = 'block';
+    document.getElementById('ratio-label').textContent = `Row gauge: your swatch is ${(rowRatio*100).toFixed(1)}% of pattern`;
+    document.getElementById('ratio-fill').style.width = Math.min(Math.max(rowRatio,0)*100, 100) + '%';
+
+  } else {
+    const inSt2  = parseFloat(document.getElementById('in-st2').value)  || 0;
+    const inRow2 = parseFloat(document.getElementById('in-row2').value) || 0;
+    if (!inSt2 || !inRow2) { ra.innerHTML = '<div class="placeholder">Enter both stitch and row counts above</div>'; rw.style.display='none'; return; }
+    const outSt  = Math.round(inSt2  * stRatio);
+    const outRow = Math.round(inRow2 * rowRatio);
+    const diffSt  = outSt  - inSt2;
+    const diffRow = outRow - inRow2;
+    html = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div><div class="result-label">Adjusted stitches</div>
+        <div><span class="result-num">${outSt}</span><span class="result-unit">sts</span></div>
+        <div class="result-note">${inSt2} &rarr; ${outSt} (${diffSt >= 0 ? '+' : ''}${diffSt})</div></div>
+      <div><div class="result-label">Adjusted rows</div>
+        <div><span class="result-num">${outRow}</span><span class="result-unit">rows</span></div>
+        <div class="result-note">${inRow2} &rarr; ${outRow} (${diffRow >= 0 ? '+' : ''}${diffRow})</div></div>
+    </div>`;
+    rw.style.display = 'none';
+  }
+  ra.innerHTML = html;
+}
+
+drawSwatch('swatch-pattern', 18, 24, false);
+drawSwatch('swatch-mine', 17, 22, true);
+update();
+</script>
+</body>
+</html>
