@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sleeve Taper Calculator</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f5f3ee;
+    color: #1a1a18;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem 4rem;
+  }
+
+  header { text-align: center; margin-bottom: 2.5rem; }
+  header h1 { font-size: 1.75rem; font-weight: 600; letter-spacing: -0.02em; color: #1a1a18; margin-bottom: 0.4rem; }
+  header p { font-size: 0.9rem; color: #6b6b67; line-height: 1.6; }
+
+  .card { background: #ffffff; border-radius: 16px; border: 0.5px solid #d8d6cf; padding: 2rem; width: 100%; max-width: 600px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+
+  .dir-toggle { display: flex; gap: 8px; margin-bottom: 1.25rem; }
+  .dtog {
+    flex: 1; padding: 9px 10px; border-radius: 10px; border: 0.5px solid #d8d6cf;
+    background: #fafaf8; color: #6b6b67; font-size: 13px; cursor: pointer;
+    text-align: center; transition: all 0.15s; line-height: 1.3;
+  }
+  .dtog.active { background: #E6F1FB; color: #185FA5; border-color: #85B7EB; font-weight: 500; }
+
+  .sec-title { font-size: 11px; font-weight: 500; color: #185FA5; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 10px; }
+
+  .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+
+  .unit-tog { display: flex; gap: 6px; }
+  .utog {
+    padding: 5px 14px; border-radius: 8px; border: 0.5px solid #d8d6cf;
+    background: #fafaf8; color: #6b6b67; font-size: 12px; cursor: pointer; transition: all 0.15s;
+  }
+  .utog.active { background: #E6F1FB; color: #185FA5; border-color: #85B7EB; font-weight: 500; }
+
+  .toggle-switch { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #6b6b67; cursor: pointer; user-select: none; }
+  .toggle-switch input[type=checkbox] {
+    width: 32px; height: 18px; appearance: none; -webkit-appearance: none;
+    background: #d8d6cf; border-radius: 9px; position: relative; cursor: pointer; transition: background 0.2s; flex-shrink: 0;
+  }
+  .toggle-switch input[type=checkbox]:checked { background: #378ADD; }
+  .toggle-switch input[type=checkbox]::after {
+    content: ''; position: absolute; width: 14px; height: 14px;
+    border-radius: 50%; background: #fff; top: 2px; left: 2px; transition: left 0.2s;
+  }
+  .toggle-switch input[type=checkbox]:checked::after { left: 16px; }
+
+  .input-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 1.25rem; }
+
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field label { font-size: 12px; color: #6b6b67; }
+  .field input {
+    font-size: 15px; padding: 7px 10px; border-radius: 8px;
+    border: 0.5px solid #d8d6cf; background: #fafaf8; color: #1a1a18;
+    width: 100%; outline: none; transition: border-color 0.15s, box-shadow 0.15s;
+    -moz-appearance: textfield;
+  }
+  .field input::-webkit-inner-spin-button,
+  .field input::-webkit-outer-spin-button { -webkit-appearance: none; }
+  .field input:focus { border-color: #378ADD; box-shadow: 0 0 0 3px rgba(55,138,221,0.12); }
+  .field input:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .divider { border: none; border-top: 0.5px solid #e8e6e0; margin: 1.5rem 0; }
+
+  .warning {
+    font-size: 13px; color: #8b2e2e; background: #fcebeb;
+    border-radius: 8px; padding: 10px 14px; margin-bottom: 1rem; display: none; line-height: 1.5;
+  }
+
+  .results { display: none; }
+
+  .main-layout { display: grid; grid-template-columns: 1fr 130px; gap: 20px; align-items: start; }
+
+  .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 1.25rem; }
+  .metric { background: #f5f3ee; border-radius: 8px; padding: 9px 11px; }
+  .metric .lbl { font-size: 10px; color: #9b9994; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
+  .metric .num { font-size: 20px; font-weight: 600; color: #1a1a18; margin-top: 2px; }
+  .metric .unit { font-size: 11px; color: #9b9994; margin-left: 2px; font-weight: 400; }
+
+  .steps-wrap { border: 0.5px solid #d8d6cf; border-radius: 10px; overflow: hidden; }
+  .steps-header {
+    display: grid; grid-template-columns: 1fr 1fr; padding: 7px 12px;
+    background: #f5f3ee; font-size: 10px; color: #9b9994;
+    font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; gap: 6px;
+  }
+  .step-row {
+    display: grid; grid-template-columns: 1fr 1fr; padding: 9px 12px;
+    border-top: 0.5px solid #e8e6e0; font-size: 13px; align-items: center; gap: 6px; color: #1a1a18;
+  }
+  .step-row.total { font-weight: 500; background: #fafaf8; }
+  .phase-dot { width: 8px; height: 8px; border-radius: 50%; background: #378ADD; display: inline-block; margin-right: 5px; vertical-align: middle; }
+
+  .note {
+    font-size: 12px; color: #6b6b67; margin-top: 10px; line-height: 1.6;
+    padding: 9px 12px; background: #f5f3ee; border-radius: 8px;
+  }
+
+  footer { margin-top: 2.5rem; font-size: 0.8rem; color: #b4b2a9; text-align: center; }
+
+  @media (max-width: 480px) {
+    .card { padding: 1.25rem; }
+    header h1 { font-size: 1.4rem; }
+    .main-layout { grid-template-columns: 1fr; }
+    #sleeve-svg { display: none; }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    body { background: #1a1a18; color: #e8e6e0; }
+    header h1 { color: #e8e6e0; }
+    header p { color: #9b9994; }
+    .card { background: #242422; border-color: #3a3a37; box-shadow: none; }
+    .dtog { background: #1a1a18; border-color: #3a3a37; color: #9b9994; }
+    .dtog.active { background: #0c2d4a; color: #85B7EB; border-color: #185FA5; }
+    .utog { background: #1a1a18; border-color: #3a3a37; color: #9b9994; }
+    .utog.active { background: #0c2d4a; color: #85B7EB; border-color: #185FA5; }
+    .toggle-switch { color: #9b9994; }
+    .toggle-switch input[type=checkbox] { background: #3a3a37; }
+    .toggle-switch input[type=checkbox]:checked { background: #378ADD; }
+    .field label { color: #9b9994; }
+    .field input { background: #1a1a18; border-color: #3a3a37; color: #e8e6e0; }
+    .metric { background: #1a1a18; }
+    .metric .num { color: #e8e6e0; }
+    .divider { border-color: #3a3a37; }
+    .steps-wrap { border-color: #3a3a37; }
+    .steps-header { background: #1a1a18; }
+    .step-row { border-color: #3a3a37; color: #e8e6e0; }
+    .step-row.total { background: #1f1f1d; }
+    .note { background: #1a1a18; color: #9b9994; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Sleeve taper calculator</h1>
+  <p>Space increases or decreases evenly across your sleeve shaping rows</p>
+</header>
+
+<div class="card">
+  <div class="dir-toggle">
+    <div class="dtog active" id="dtog-cu" onclick="setDir('cu')">Cuff → underarm<br><span style="font-size:11px;opacity:0.7">increases</span></div>
+    <div class="dtog" id="dtog-uc" onclick="setDir('uc')">Underarm → cuff<br><span style="font-size:11px;opacity:0.7">decreases</span></div>
+  </div>
+
+  <div class="top-bar">
+    <div class="sec-title" style="margin:0">Measurements</div>
+    <div style="display:flex;align-items:center;gap:14px">
+      <label class="toggle-switch">
+        <input type="checkbox" id="rib-toggle" checked onchange="calc()" />
+        <span>Cuff ribbing</span>
+      </label>
+      <div class="unit-tog">
+        <div class="utog active" id="utog-cm" onclick="setUnit('cm')">cm</div>
+        <div class="utog" id="utog-in" onclick="setUnit('in')">in</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="input-grid" style="margin-top:10px">
+    <div class="field">
+      <label id="lbl-total">Cuff to underarm (cm)</label>
+      <input type="number" id="len-total" value="45" min="1" step="0.5" oninput="calc()" />
+    </div>
+    <div class="field" id="rib-field">
+      <label id="lbl-rib">Ribbing length (cm)</label>
+      <input type="number" id="len-rib" value="5" min="0" step="0.5" oninput="calc()" />
+    </div>
+    <div class="field">
+      <label id="lbl-ease">Cap ease allowance (cm)</label>
+      <input type="number" id="len-ease" value="5" min="0" step="0.5" oninput="calc()" />
+    </div>
+  </div>
+
+  <div class="sec-title">Gauge &amp; stitches</div>
+  <div class="input-grid">
+    <div class="field">
+      <label>Row gauge (rows per 10cm)</label>
+      <input type="number" id="row-gauge" value="28" min="1" oninput="calc()" />
+    </div>
+    <div class="field">
+      <label>Stitch gauge (sts per 10cm)</label>
+      <input type="number" id="st-gauge" value="20" min="1" oninput="calc()" />
+    </div>
+    <div class="field">
+      <label id="lbl-start">Starting sts (cuff)</label>
+      <input type="number" id="sts-start" value="52" min="1" oninput="calc()" />
+    </div>
+    <div class="field">
+      <label id="lbl-end">Ending sts (underarm)</label>
+      <input type="number" id="sts-end" value="80" min="1" oninput="calc()" />
+    </div>
+  </div>
+
+  <div class="warning" id="warning"></div>
+
+  <div class="results" id="results">
+    <div class="divider"></div>
+    <div class="main-layout">
+      <div>
+        <div class="metrics">
+          <div class="metric"><div class="lbl">Shaping rows</div><div class="num" id="m-rows">—</div></div>
+          <div class="metric"><div class="lbl" id="m-change-lbl">Sts to add</div><div class="num" id="m-change">—</div></div>
+          <div class="metric"><div class="lbl">Every N rows</div><div class="num" id="m-every">—<span class="unit">rows</span></div></div>
+          <div class="metric"><div class="lbl">Remainder</div><div class="num" id="m-rem">—<span class="unit">extra</span></div></div>
+        </div>
+        <div class="steps-wrap">
+          <div class="steps-header"><span>Phase</span><span>Repeat</span></div>
+          <div id="steps-body"></div>
+        </div>
+        <div class="note" id="note"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;padding-top:4px">
+        <svg id="sleeve-svg" width="120" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>Sleeve taper calculator &middot; increases &amp; decreases</footer>
+
+<script>
+let dir = 'cu', unit = 'cm';
+
+function setDir(d) {
+  dir = d;
+  ['cu','uc'].forEach(k => document.getElementById('dtog-'+k).className='dtog'+(k===d?' active':''));
+  const isCu = d==='cu';
+  document.getElementById('lbl-start').textContent = isCu ? 'Starting sts (cuff)' : 'Starting sts (underarm)';
+  document.getElementById('lbl-end').textContent   = isCu ? 'Ending sts (underarm)' : 'Ending sts (cuff)';
+  document.getElementById('m-change-lbl').textContent = isCu ? 'Sts to add' : 'Sts to remove';
+  calc();
+}
+
+function setUnit(u) {
+  unit = u;
+  ['cm','in'].forEach(k => document.getElementById('utog-'+k).className='utog'+(k===u?' active':''));
+  const isIn = u==='in';
+  document.getElementById('lbl-total').textContent = isIn ? 'Cuff to underarm (in)' : 'Cuff to underarm (cm)';
+  document.getElementById('lbl-rib').textContent   = isIn ? 'Ribbing length (in)' : 'Ribbing length (cm)';
+  document.getElementById('lbl-ease').textContent  = isIn ? 'Cap ease allowance (in)' : 'Cap ease allowance (cm)';
+  document.getElementById('len-total').value = isIn ? '18' : '45';
+  document.getElementById('len-rib').value   = isIn ? '2'  : '5';
+  document.getElementById('len-ease').value  = isIn ? '2'  : '5';
+  calc();
+}
+
+function calc() {
+  const hasRib   = document.getElementById('rib-toggle').checked;
+  const ribField = document.getElementById('rib-field');
+  const ribInput = document.getElementById('len-rib');
+  ribField.style.opacity = hasRib ? '1' : '0.35';
+  ribInput.disabled = !hasRib;
+
+  const lenTotal = parseFloat(document.getElementById('len-total').value) || 0;
+  const lenRib   = hasRib ? (parseFloat(ribInput.value) || 0) : 0;
+  const lenEase  = parseFloat(document.getElementById('len-ease').value)  || 0;
+  const rowG     = parseFloat(document.getElementById('row-gauge').value) || 0;
+  const stG      = parseFloat(document.getElementById('st-gauge').value)  || 0;
+  const stsStart = parseInt(document.getElementById('sts-start').value)   || 0;
+  const stsEnd   = parseInt(document.getElementById('sts-end').value)     || 0;
+  const warn     = document.getElementById('warning');
+  const res      = document.getElementById('results');
+  warn.style.display = 'none';
+  res.style.display  = 'none';
+
+  if (!lenTotal || !rowG || !stG || !stsStart || !stsEnd) return;
+
+  const shapingLen = lenTotal - lenRib - lenEase;
+  if (shapingLen <= 0) {
+    warn.textContent = `Ribbing (${lenRib}) + ease (${lenEase}) exceed total length (${lenTotal}). Reduce one of them.`;
+    warn.style.display = 'block'; return;
+  }
+
+  const rawRows  = Math.round(shapingLen * (unit === 'cm' ? rowG/10 : rowG/2.54));
+  const stChange = Math.abs(stsEnd - stsStart);
+
+  if (stChange === 0) {
+    warn.textContent = 'Starting and ending stitch counts are the same — no shaping needed!';
+    warn.style.display = 'block'; return;
+  }
+
+  const shapingEvents = Math.ceil(stChange / 2);
+  if (rawRows < shapingEvents) {
+    warn.textContent = `Not enough rows (${rawRows}) for ${shapingEvents} shaping events. Try a longer sleeve or fewer stitches to change.`;
+    warn.style.display = 'block'; return;
+  }
+
+  const everyBase = Math.floor(rawRows / shapingEvents);
+  const remainder = rawRows - everyBase * shapingEvents;
+  const isCu      = dir === 'cu';
+  const action    = isCu ? (stsEnd > stsStart ? 'increase' : 'decrease') : (stsStart > stsEnd ? 'decrease' : 'increase');
+  const u         = unit === 'cm' ? 'cm' : '"';
+
+  document.getElementById('m-rows').textContent   = rawRows;
+  document.getElementById('m-change').textContent = stChange;
+  document.getElementById('m-every').innerHTML    = `${everyBase}${remainder>0?'&ndash;'+(everyBase+1):''}<span class="unit">rows</span>`;
+  document.getElementById('m-rem').innerHTML      = `${remainder}<span class="unit"> of ${shapingEvents}</span>`;
+
+  let stepsHtml = '';
+  if (remainder > 0) {
+    stepsHtml += `<div class="step-row"><span><span class="phase-dot"></span>1 st each end, every ${everyBase+1} rows</span><span>${remainder}&times;</span></div>`;
+    stepsHtml += `<div class="step-row"><span><span class="phase-dot"></span>1 st each end, every ${everyBase} rows</span><span>${shapingEvents-remainder}&times;</span></div>`;
+  } else {
+    stepsHtml += `<div class="step-row"><span><span class="phase-dot"></span>1 st each end, every ${everyBase} rows</span><span>${shapingEvents}&times;</span></div>`;
+  }
+  stepsHtml += `<div class="step-row total"><span>Total</span><span>${rawRows} rows &middot; ${stChange} sts ${action}d</span></div>`;
+  document.getElementById('steps-body').innerHTML = stepsHtml;
+
+  const easeNote = `Begin ~${lenEase}${u} before cap shaping`;
+  const ribNote  = hasRib ? `, end ~${lenRib}${u} before cuff ribbing` : '';
+  document.getElementById('note').innerHTML = `${easeNote}${ribNote}. Work ${action}s at both ends of each shaping row — 2 sts changed per shaping row.`;
+
+  drawSleeve(stsStart, stsEnd, rawRows, hasRib ? lenRib : 0, lenEase, shapingLen, lenTotal, isCu, hasRib);
+  res.style.display = 'block';
+}
+
+function drawSleeve(stsStart, stsEnd, rows, ribLen, easeLen, shapingLen, totalLen, isCu, hasRib) {
+  const svg    = document.getElementById('sleeve-svg');
+  const W = 120, H = 300, padX = 14, padY = 18;
+  const drawH  = H - padY*2;
+  const maxSts = Math.max(stsStart, stsEnd);
+  const scaleX = (W - padX*2) / maxSts;
+
+  const startSts = isCu ? stsStart : stsEnd;
+  const endSts   = isCu ? stsEnd   : stsStart;
+
+  const ribH   = (ribLen    / totalLen) * drawH;
+  const easeH  = (easeLen   / totalLen) * drawH;
+  const shapeH = (shapingLen / totalLen) * drawH;
+
+  const cx     = W/2;
+  const yHem   = padY + drawH;
+  const yRib   = yHem  - ribH;
+  const yShape = yRib  - shapeH;
+  const yEase  = yShape - easeH;
+  const yTop   = padY;
+
+  const cuffW  = startSts * scaleX;
+  const underW = endSts   * scaleX;
+
+  let html = '';
+
+  if (hasRib && ribLen > 0) {
+    html += `<rect x="${cx-cuffW/2}" y="${yRib}" width="${cuffW}" height="${ribH}" rx="2" fill="#B5D4F4" stroke="#378ADD" stroke-width="0.5"/>`;
+  }
+
+  const pts = [
+    `${cx-underW/2},${yTop}`,
+    `${cx+underW/2},${yTop}`,
+    `${cx+underW/2},${yEase}`,
+    `${cx+endSts*scaleX/2},${yShape}`,
+    `${cx+startSts*scaleX/2},${yRib}`,
+    `${cx+cuffW/2},${yHem}`,
+    `${cx-cuffW/2},${yHem}`,
+    `${cx-startSts*scaleX/2},${yRib}`,
+    `${cx-endSts*scaleX/2},${yShape}`,
+    `${cx-underW/2},${yEase}`,
+  ].join(' ');
+
+  html += `<polygon points="${pts}" fill="#E6F1FB" stroke="#378ADD" stroke-width="1.5" stroke-linejoin="round"/>`;
+  html += `<line x1="${cx-underW/2-4}" y1="${yEase}" x2="${cx+underW/2+4}" y2="${yEase}" stroke="#378ADD" stroke-width="0.5" stroke-dasharray="3,2"/>`;
+
+  if (hasRib && ribLen > 0) {
+    html += `<line x1="${cx-cuffW/2-4}" y1="${yRib}" x2="${cx+cuffW/2+4}" y2="${yRib}" stroke="#378ADD" stroke-width="0.5" stroke-dasharray="3,2"/>`;
+    html += `<text x="${cx}" y="${yRib+(ribH/2)+4}" text-anchor="middle" font-size="8" fill="#185FA5" font-family="-apple-system,system-ui,sans-serif">rib</text>`;
+  }
+
+  html += `<text x="${cx}" y="${padY-5}" text-anchor="middle" font-size="9" fill="#185FA5" font-family="-apple-system,system-ui,sans-serif">underarm</text>`;
+  html += `<text x="${cx}" y="${yEase-4}" text-anchor="middle" font-size="8" fill="#378ADD" font-family="-apple-system,system-ui,sans-serif">ease</text>`;
+  html += `<text x="${cx}" y="${yShape+(shapeH/2)+4}" text-anchor="middle" font-size="9" fill="#185FA5" font-family="-apple-system,system-ui,sans-serif" font-style="italic">shaping</text>`;
+  html += `<text x="${cx}" y="${yHem+12}" text-anchor="middle" font-size="9" fill="#185FA5" font-family="-apple-system,system-ui,sans-serif">cuff</text>`;
+
+  svg.innerHTML = html;
+  svg.setAttribute('height', H+10);
+}
+
+calc();
+</script>
+</body>
+</html>

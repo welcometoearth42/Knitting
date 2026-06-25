@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Buttonhole Band Calculator</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f5f3ee;
+    color: #1a1a18;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem 4rem;
+  }
+
+  header { text-align: center; margin-bottom: 2.5rem; }
+  header h1 { font-size: 1.75rem; font-weight: 600; letter-spacing: -0.02em; color: #1a1a18; margin-bottom: 0.4rem; }
+  header p { font-size: 0.9rem; color: #6b6b67; line-height: 1.6; }
+
+  .card { background: #ffffff; border-radius: 16px; border: 0.5px solid #d8d6cf; padding: 2rem; width: 100%; max-width: 600px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+
+  .dir-toggle { display: flex; gap: 8px; margin-bottom: 1.5rem; }
+  .dtog {
+    flex: 1; padding: 10px; border-radius: 10px; border: 0.5px solid #d8d6cf;
+    background: #fafaf8; color: #6b6b67; font-size: 13px; cursor: pointer;
+    text-align: center; transition: all 0.15s; line-height: 1.4;
+  }
+  .dtog.active-h { background: #eeedfe; color: #534ab7; border-color: #afa9ec; font-weight: 500; }
+  .dtog.active-v { background: #e1f5ee; color: #0f6e56; border-color: #5dcaa5; font-weight: 500; }
+
+  .sec-title-h { font-size: 11px; font-weight: 500; color: #534ab7; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 10px; }
+  .sec-title-v { font-size: 11px; font-weight: 500; color: #0f6e56; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 10px; }
+
+  .input-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 1.25rem; }
+
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label { font-size: 13px; color: #6b6b67; }
+  .field input {
+    font-size: 1.05rem; font-weight: 500; color: #1a1a18;
+    border: 0.5px solid #d8d6cf; border-radius: 10px;
+    padding: 8px 12px; background: #fafaf8; outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    -moz-appearance: textfield; width: 100%;
+  }
+  .field input::-webkit-inner-spin-button,
+  .field input::-webkit-outer-spin-button { -webkit-appearance: none; }
+  .field input.h-focus:focus { border-color: #7f77dd; box-shadow: 0 0 0 3px rgba(127,119,221,0.12); }
+  .field input.v-focus:focus { border-color: #1d9e75; box-shadow: 0 0 0 3px rgba(29,158,117,0.12); }
+
+  .hint { font-size: 12px; color: #9b9994; background: #f5f3ee; border-radius: 8px; padding: 10px 13px; margin-bottom: 1.25rem; line-height: 1.6; }
+
+  .divider { border: none; border-top: 0.5px solid #e8e6e0; margin: 1.5rem 0; }
+
+  .warning { font-size: 13px; color: #8b2e2e; background: #fcebeb; border-radius: 8px; padding: 10px 14px; margin-bottom: 1rem; display: none; line-height: 1.5; }
+
+  .results-area { display: none; }
+
+  .main-layout { display: grid; grid-template-columns: 1fr 90px; gap: 24px; align-items: start; }
+
+  .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.25rem; }
+  .metric { background: #f5f3ee; border-radius: 8px; padding: 10px 11px; }
+  .metric .lbl { font-size: 10px; color: #9b9994; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
+  .metric .num { font-size: 20px; font-weight: 600; color: #1a1a18; margin-top: 2px; }
+  .metric .unit { font-size: 11px; color: #9b9994; margin-left: 2px; font-weight: 400; }
+
+  .steps-wrap { border: 0.5px solid #d8d6cf; border-radius: 10px; overflow: hidden; }
+  .steps-header {
+    display: grid; padding: 8px 13px;
+    background: #f5f3ee; font-size: 10px; color: #9b9994;
+    font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; gap: 6px;
+  }
+  .step-row {
+    display: grid; padding: 9px 13px;
+    border-top: 0.5px solid #e8e6e0; font-size: 13px; align-items: center; gap: 6px; color: #1a1a18;
+  }
+  .step-row.total { font-weight: 500; background: #fafaf8; }
+
+  .bh-dot-h { width: 13px; height: 13px; border-radius: 50%; background: #7f77dd; border: 2px solid #534ab7; display: inline-block; vertical-align: middle; }
+  .bh-dot-v { width: 13px; height: 13px; border-radius: 3px; background: #1d9e75; border: 2px solid #0f6e56; display: inline-block; vertical-align: middle; }
+
+  .right { display: flex; flex-direction: column; align-items: center; padding-top: 4px; }
+  #band-svg { width: 90px; }
+
+  footer { margin-top: 2.5rem; font-size: 0.8rem; color: #b4b2a9; text-align: center; }
+
+  @media (max-width: 480px) {
+    .card { padding: 1.25rem; }
+    header h1 { font-size: 1.4rem; }
+    .main-layout { grid-template-columns: 1fr 70px; gap: 14px; }
+    .metrics { grid-template-columns: 1fr 1fr; }
+    .metrics .metric:last-child { grid-column: span 2; }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    body { background: #1a1a18; color: #e8e6e0; }
+    header h1 { color: #e8e6e0; }
+    header p { color: #9b9994; }
+    .card { background: #242422; border-color: #3a3a37; box-shadow: none; }
+    .dtog { background: #1a1a18; border-color: #3a3a37; color: #9b9994; }
+    .dtog.active-h { background: #1e1c3a; color: #afa9ec; border-color: #534ab7; }
+    .dtog.active-v { background: #0d2820; color: #5dcaa5; border-color: #0f6e56; }
+    .field label { color: #9b9994; }
+    .field input { background: #1a1a18; border-color: #3a3a37; color: #e8e6e0; }
+    .hint { background: #1a1a18; color: #6b6b67; }
+    .metric { background: #1a1a18; }
+    .metric .num { color: #e8e6e0; }
+    .divider { border-color: #3a3a37; }
+    .steps-wrap { border-color: #3a3a37; }
+    .steps-header { background: #1a1a18; }
+    .step-row { border-color: #3a3a37; color: #e8e6e0; }
+    .step-row.total { background: #1f1f1d; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Buttonhole band calculator</h1>
+  <p>Space buttonholes evenly — horizontal bands by stitch, vertical bands by row</p>
+</header>
+
+<div class="card">
+
+  <div class="dir-toggle">
+    <div class="dtog active-h" id="tog-h" onclick="setMode('h')">Horizontal band<br><span style="font-size:11px;opacity:0.7">stitches across a row</span></div>
+    <div class="dtog" id="tog-v" onclick="setMode('v')">Vertical band<br><span style="font-size:11px;opacity:0.7">rows alongside the garment</span></div>
+  </div>
+
+  <!-- HORIZONTAL -->
+  <div id="h-inputs">
+    <div class="sec-title-h">Button band</div>
+    <div class="input-grid">
+      <div class="field"><label>Total stitches in band</label><input type="number" class="h-focus" id="h-total" value="120" min="1" inputmode="numeric" oninput="calc()" /></div>
+      <div class="field"><label>Number of buttons</label><input type="number" class="h-focus" id="h-buttons" value="6" min="2" max="40" inputmode="numeric" oninput="calc()" /></div>
+      <div class="field"><label>Stitches per buttonhole</label><input type="number" class="h-focus" id="h-bhole" value="3" min="1" inputmode="numeric" oninput="calc()" /></div>
+    </div>
+    <div class="sec-title-h">Edge stitches</div>
+    <div class="input-grid">
+      <div class="field"><label>Stitches before first buttonhole</label><input type="number" class="h-focus" id="h-before" value="4" min="0" inputmode="numeric" oninput="calc()" /></div>
+      <div class="field"><label>Stitches after last buttonhole</label><input type="number" class="h-focus" id="h-after" value="4" min="0" inputmode="numeric" oninput="calc()" /></div>
+    </div>
+    <div class="hint">Each buttonhole is worked over the stated stitches in a single row. Gaps are the plain stitches knitted between buttonholes. If the band doesn't divide evenly, the extra stitch is spread across the first gaps.</div>
+  </div>
+
+  <!-- VERTICAL -->
+  <div id="v-inputs" style="display:none">
+    <div class="sec-title-v">Band rows</div>
+    <div class="input-grid">
+      <div class="field"><label>Total rows in band</label><input type="number" class="v-focus" id="v-total" value="90" min="1" inputmode="numeric" oninput="calc()" /></div>
+      <div class="field"><label>Number of buttons</label><input type="number" class="v-focus" id="v-buttons" value="5" min="2" max="40" inputmode="numeric" oninput="calc()" /></div>
+      <div class="field"><label>Rows per buttonhole</label><input type="number" class="v-focus" id="v-bhrows" value="2" min="1" inputmode="numeric" oninput="calc()" /></div>
+    </div>
+    <div class="sec-title-v">Edge margins</div>
+    <div class="input-grid">
+      <div class="field"><label>Rows before first buttonhole</label><input type="number" class="v-focus" id="v-before" value="6" min="0" inputmode="numeric" oninput="calc()" /></div>
+      <div class="field"><label>Rows after last buttonhole</label><input type="number" class="v-focus" id="v-after" value="6" min="0" inputmode="numeric" oninput="calc()" /></div>
+    </div>
+    <div class="hint">The band grows row by row alongside your garment. The calculator tells you which row to begin each buttonhole — work it however you like. If the rows don't divide evenly, the extra row is spread across the first gaps.</div>
+  </div>
+
+  <div class="warning" id="warning"></div>
+
+  <div class="results-area" id="results">
+    <div class="divider"></div>
+    <div class="main-layout">
+      <div>
+        <div class="metrics">
+          <div class="metric"><div class="lbl" id="m-gap-lbl">Gap between</div><div class="num" id="m-gap">—<span class="unit" id="m-gap-unit"></span></div></div>
+          <div class="metric"><div class="lbl" id="m-first-lbl">First at</div><div class="num" id="m-first">—<span class="unit" id="m-first-unit"></span></div></div>
+          <div class="metric"><div class="lbl">Remainder</div><div class="num" id="m-rem">—</div></div>
+        </div>
+        <div class="steps-wrap">
+          <div class="steps-header" id="steps-hdr"></div>
+          <div id="steps-body"></div>
+        </div>
+      </div>
+      <div class="right">
+        <svg id="band-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>Buttonhole band calculator &middot; horizontal &amp; vertical</footer>
+
+<script>
+let mode = 'h';
+
+function setMode(m) {
+  mode = m;
+  const isH = m === 'h';
+  document.getElementById('tog-h').className = 'dtog' + (isH ? ' active-h' : '');
+  document.getElementById('tog-v').className = 'dtog' + (!isH ? ' active-v' : '');
+  document.getElementById('h-inputs').style.display = isH ? 'block' : 'none';
+  document.getElementById('v-inputs').style.display = isH ? 'none' : 'block';
+  document.getElementById('results').style.display  = 'none';
+  document.getElementById('warning').style.display  = 'none';
+  calc();
+}
+
+function calc() {
+  const warn = document.getElementById('warning');
+  const res  = document.getElementById('results');
+  warn.style.display = 'none';
+  res.style.display  = 'none';
+  if (mode === 'h') calcH(warn, res);
+  else calcV(warn, res);
+}
+
+function calcH(warn, res) {
+  const total   = parseInt(document.getElementById('h-total').value)   || 0;
+  const buttons = parseInt(document.getElementById('h-buttons').value) || 0;
+  const bhole   = parseInt(document.getElementById('h-bhole').value)   || 0;
+  const before  = parseInt(document.getElementById('h-before').value)  || 0;
+  const after   = parseInt(document.getElementById('h-after').value)   || 0;
+  if (!total || !buttons || !bhole) return;
+
+  const usable  = total - before - after - (buttons * bhole);
+  if (usable < 0) {
+    warn.textContent = `Not enough stitches — buttonholes and edges need ${before+after+buttons*bhole} sts but your band has ${total}.`;
+    warn.style.display = 'block'; return;
+  }
+
+  const gaps    = buttons - 1;
+  const gapBase = Math.floor(usable / gaps);
+  const rem     = usable - gapBase * gaps;
+
+  document.getElementById('m-gap-lbl').textContent    = 'Gap between';
+  document.getElementById('m-gap-unit').textContent   = 'st';
+  document.getElementById('m-first-lbl').textContent  = 'First hole at';
+  document.getElementById('m-first-unit').textContent = 'st';
+  document.getElementById('m-gap').innerHTML   = `${gapBase}${rem>0?'&ndash;'+(gapBase+1):''}<span class="unit">st</span>`;
+  document.getElementById('m-first').innerHTML = `${before+1}<span class="unit">st</span>`;
+  document.getElementById('m-rem').innerHTML   = `${rem}<span class="unit" style="font-size:10px"> of ${gaps}</span>`;
+
+  const positions = [];
+  let cursor = before;
+  for (let i = 0; i < buttons; i++) {
+    positions.push({ start: cursor, end: cursor + bhole });
+    if (i < buttons-1) cursor += bhole + gapBase + (i < rem ? 1 : 0);
+  }
+  for (let i = 0; i < buttons-1; i++) positions[i].gap = gapBase + (i < rem ? 1 : 0);
+  positions[buttons-1].gap = null;
+
+  const hdr = document.getElementById('steps-hdr');
+  hdr.style.gridTemplateColumns = '28px 1fr 1fr';
+  hdr.innerHTML = '<span>#</span><span>Work hole after st</span><span>Resume at st</span>';
+
+  let sh = '';
+  positions.forEach((p, i) => {
+    sh += `<div class="step-row" style="grid-template-columns:28px 1fr 1fr"><span><span class="bh-dot-h"></span></span><span>st ${p.start}</span><span>st ${p.end+1}</span></div>`;
+  });
+  document.getElementById('steps-body').innerHTML = sh;
+
+  drawBand(positions, total, before, after, bhole, true);
+  res.style.display = 'block';
+}
+
+function calcV(warn, res) {
+  const total   = parseInt(document.getElementById('v-total').value)   || 0;
+  const buttons = parseInt(document.getElementById('v-buttons').value) || 0;
+  const bhrows  = parseInt(document.getElementById('v-bhrows').value)  || 0;
+  const before  = parseInt(document.getElementById('v-before').value)  || 0;
+  const after   = parseInt(document.getElementById('v-after').value)   || 0;
+  if (!total || !buttons || !bhrows) return;
+
+  const usable  = total - before - after - (buttons * bhrows);
+  if (usable < 0) {
+    warn.textContent = `Not enough rows — buttonholes and margins need ${before+after+buttons*bhrows} rows but your band has ${total}.`;
+    warn.style.display = 'block'; return;
+  }
+
+  const gaps    = buttons - 1;
+  const gapBase = Math.floor(usable / gaps);
+  const rem     = usable - gapBase * gaps;
+
+  document.getElementById('m-gap-lbl').textContent    = 'Rows between';
+  document.getElementById('m-gap-unit').textContent   = 'rows';
+  document.getElementById('m-first-lbl').textContent  = 'First hole at';
+  document.getElementById('m-first-unit').textContent = 'row';
+  document.getElementById('m-gap').innerHTML   = `${gapBase}${rem>0?'&ndash;'+(gapBase+1):''}<span class="unit">rows</span>`;
+  document.getElementById('m-first').innerHTML = `${before+1}<span class="unit">row</span>`;
+  document.getElementById('m-rem').innerHTML   = `${rem}<span class="unit" style="font-size:10px"> of ${gaps}</span>`;
+
+  const positions = [];
+  let cursor = before;
+  for (let i = 0; i < buttons; i++) {
+    positions.push({ start: cursor, end: cursor + bhrows });
+    if (i < buttons-1) cursor += bhrows + gapBase + (i < rem ? 1 : 0);
+  }
+  for (let i = 0; i < buttons-1; i++) positions[i].gap = gapBase + (i < rem ? 1 : 0);
+  positions[buttons-1].gap = null;
+
+  const hdr = document.getElementById('steps-hdr');
+  hdr.style.gridTemplateColumns = '28px 1fr 1fr';
+  hdr.innerHTML = '<span>#</span><span>Begin buttonhole</span><span>Resume plain</span>';
+
+  let sh = '';
+  positions.forEach((p, i) => {
+    sh += `<div class="step-row" style="grid-template-columns:28px 1fr 1fr"><span><span class="bh-dot-v"></span></span><span>Row ${p.start+1}</span><span>Row ${p.end+1}</span></div>`;
+  });
+  document.getElementById('steps-body').innerHTML = sh;
+
+  drawBand(positions, total, before, after, bhrows, false);
+  res.style.display = 'block';
+}
+
+function drawBand(positions, total, before, after, bhSize, isH) {
+  const svg = document.getElementById('band-svg');
+  const svgW = 90;
+  const padTop = 22, padBot = 22;
+  const bandH = Math.max(280, positions.length * 48 + 60);
+  const svgH  = bandH + padTop + padBot;
+  svg.setAttribute('viewBox', `0 0 ${svgW} ${svgH}`);
+  svg.setAttribute('height', svgH);
+
+  const bandX = 26, bandW = 22;
+  const scale     = bandH / total;
+  const dotColor  = isH ? '#7f77dd' : '#1d9e75';
+  const fillColor = isH ? '#eeedfe' : '#e1f5ee';
+  const strkColor = isH ? '#534ab7' : '#0f6e56';
+  let html = '';
+
+  html += `<rect x="${bandX}" y="${padTop}" width="${bandW}" height="${bandH}" rx="4" fill="#f5f3ee" stroke="#d8d6cf" stroke-width="0.5"/>`;
+
+  if (!isH) {
+    for (let r = 0; r <= total; r += 4) {
+      const y = padTop + r * scale;
+      html += `<line x1="${bandX+2}" y1="${y}" x2="${bandX+bandW-2}" y2="${y}" stroke="#e0ded8" stroke-width="0.3"/>`;
+    }
+  }
+
+  if (before > 0) {
+    const y = padTop + before * scale;
+    html += `<line x1="${bandX}" y1="${y}" x2="${bandX+bandW}" y2="${y}" stroke="#d8d6cf" stroke-width="0.5" stroke-dasharray="3,2"/>`;
+  }
+  if (after > 0) {
+    const y = padTop + (total - after) * scale;
+    html += `<line x1="${bandX}" y1="${y}" x2="${bandX+bandW}" y2="${y}" stroke="#d8d6cf" stroke-width="0.5" stroke-dasharray="3,2"/>`;
+  }
+
+  positions.forEach((p, i) => {
+    const y  = padTop + p.start * scale;
+    const h  = Math.max(bhSize * scale, 7);
+    const cx = bandX + bandW / 2;
+    const cy = y + h / 2;
+
+    html += `<rect x="${bandX+3}" y="${y}" width="${bandW-6}" height="${h}" rx="2" fill="${fillColor}" stroke="${dotColor}" stroke-width="1"/>`;
+    if (isH) {
+      html += `<circle cx="${cx}" cy="${cy}" r="4.5" fill="${dotColor}"/>`;
+      html += `<circle cx="${cx}" cy="${cy}" r="2" fill="${fillColor}"/>`;
+    } else {
+      html += `<rect x="${cx-4}" y="${cy-4}" width="8" height="8" rx="2" fill="${dotColor}"/>`;
+      html += `<rect x="${cx-2}" y="${cy-2}" width="4" height="4" rx="1" fill="${fillColor}"/>`;
+    }
+    html += `<text x="${bandX-4}" y="${cy+4}" text-anchor="end" font-size="10" fill="${strkColor}" font-family="-apple-system,system-ui,sans-serif" font-weight="600">${i+1}</text>`;
+
+    if (p.gap !== null) {
+      const nextY  = padTop + positions[i+1].start * scale;
+      const gapMid = y + h + (nextY - y - h) / 2;
+      const rx     = bandX + bandW + 4;
+      html += `<line x1="${rx}" y1="${y+h+2}" x2="${rx}" y2="${nextY-2}" stroke="#d8d6cf" stroke-width="0.5"/>`;
+      html += `<line x1="${rx-2}" y1="${y+h+2}" x2="${rx+2}" y2="${y+h+2}" stroke="#b4b2a9" stroke-width="0.5"/>`;
+      html += `<line x1="${rx-2}" y1="${nextY-2}" x2="${rx+2}" y2="${nextY-2}" stroke="#b4b2a9" stroke-width="0.5"/>`;
+      html += `<text x="${rx+5}" y="${gapMid+4}" font-size="9" fill="#9b9994" font-family="-apple-system,system-ui,sans-serif">${p.gap}</text>`;
+    }
+  });
+
+  const topLabel = isH ? 'cast on' : 'row 1';
+  const botLabel = isH ? 'cast off' : `row ${total}`;
+  html += `<text x="${bandX+bandW/2}" y="${padTop-7}" text-anchor="middle" font-size="9" fill="#9b9994" font-family="-apple-system,system-ui,sans-serif">${topLabel}</text>`;
+  html += `<text x="${bandX+bandW/2}" y="${padTop+bandH+16}" text-anchor="middle" font-size="9" fill="#9b9994" font-family="-apple-system,system-ui,sans-serif">${botLabel}</text>`;
+
+  svg.innerHTML = html;
+}
+
+calc();
+</script>
+</body>
+</html>
