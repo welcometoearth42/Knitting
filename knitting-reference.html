@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Knitting Reference Guide</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f5f3ee;
+    color: #1a1a18;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem 4rem;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  header h1 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: #1a1a18;
+    margin-bottom: 0.4rem;
+  }
+
+  header p {
+    font-size: 0.9rem;
+    color: #6b6b67;
+    line-height: 1.6;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 640px;
+  }
+
+  .section {
+    border: 0.5px solid #d8d6cf;
+    border-radius: 14px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+
+  .section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 18px;
+    cursor: pointer;
+    user-select: none;
+    background: #ffffff;
+  }
+
+  .section-head:hover { background: #fafaf8; }
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #1a1a18;
+  }
+
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: #EF9F27;
+  }
+
+  .chevron {
+    font-size: 18px;
+    color: #9b9994;
+    transition: transform 0.2s;
+    display: inline-block;
+  }
+
+  .chevron.open { transform: rotate(180deg); }
+
+  .section-body {
+    display: none;
+    padding: 18px;
+    border-top: 0.5px solid #e8e6e0;
+  }
+
+  .section-body.open { display: block; }
+
+  .sub-title {
+    font-size: 11px;
+    font-weight: 500;
+    color: #BA7517;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 10px;
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+
+  th {
+    text-align: left;
+    padding: 7px 10px;
+    background: #f5f3ee;
+    color: #9b9994;
+    font-weight: 500;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 0.5px solid #e8e6e0;
+  }
+
+  td {
+    padding: 7px 10px;
+    border-bottom: 0.5px solid #e8e6e0;
+    color: #1a1a18;
+    vertical-align: top;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafaf8; }
+
+  .divider {
+    border: none;
+    border-top: 0.5px solid #e8e6e0;
+    margin: 16px 0;
+  }
+
+  .converter-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .three-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+  }
+
+  .field { display: flex; flex-direction: column; gap: 5px; }
+
+  .field label { font-size: 12px; color: #6b6b67; }
+
+  .field input, .field select {
+    font-size: 14px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 0.5px solid #d8d6cf;
+    background: #fafaf8;
+    color: #1a1a18;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    -moz-appearance: textfield;
+  }
+
+  .field input::-webkit-inner-spin-button,
+  .field input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+  .field input:focus, .field select:focus {
+    border-color: #EF9F27;
+    box-shadow: 0 0 0 3px rgba(239,159,39,0.15);
+  }
+
+  .result-box {
+    background: #f5f3ee;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-top: 10px;
+    font-size: 13px;
+    color: #6b6b67;
+    line-height: 1.7;
+    display: none;
+  }
+
+  .result-box strong { color: #1a1a18; font-weight: 500; }
+
+  .yarn-card {
+    border: 0.5px solid #e8e6e0;
+    border-radius: 8px;
+    padding: 10px 13px;
+    margin-bottom: 8px;
+  }
+
+  .yarn-card:last-child { margin-bottom: 0; }
+
+  .yarn-card-head {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 5px;
+  }
+
+  .yarn-num {
+    font-size: 18px;
+    font-weight: 500;
+    color: #BA7517;
+    min-width: 22px;
+  }
+
+  .yarn-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1a1a18;
+  }
+
+  .yarn-meta {
+    font-size: 12px;
+    color: #6b6b67;
+    line-height: 1.7;
+  }
+
+  .yarn-meta span { display: inline-block; margin-right: 14px; }
+
+  .increase-vis {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  .st { font-size: 13px; color: #9b9994; }
+  .st.action { color: #BA7517; font-weight: 500; }
+
+  .tog {
+    flex: 1;
+    padding: 7px 10px;
+    border-radius: 8px;
+    border: 0.5px solid #d8d6cf;
+    background: #fafaf8;
+    color: #6b6b67;
+    font-size: 13px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+  }
+
+  .tog.active {
+    background: #FAEEDA;
+    color: #854F0B;
+    border-color: #FAC775;
+    font-weight: 500;
+  }
+
+  .tog-row { display: flex; gap: 8px; margin-bottom: 14px; }
+
+  footer {
+    margin-top: 2.5rem;
+    font-size: 0.8rem;
+    color: #b4b2a9;
+    text-align: center;
+  }
+
+  @media (max-width: 480px) {
+    header h1 { font-size: 1.4rem; }
+    .three-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    body { background: #1a1a18; color: #e8e6e0; }
+    header h1 { color: #e8e6e0; }
+    header p { color: #9b9994; }
+    .section { background: #242422; border-color: #3a3a37; box-shadow: none; }
+    .section-head { background: #242422; }
+    .section-head:hover { background: #2c2c2a; }
+    .section-title { color: #e8e6e0; }
+    .section-body { border-color: #3a3a37; }
+    th { background: #1a1a18; color: #6b6b67; border-color: #3a3a37; }
+    td { border-color: #3a3a37; color: #e8e6e0; }
+    tr:hover td { background: #2c2c2a; }
+    .divider { border-color: #3a3a37; }
+    .field input, .field select { background: #1a1a18; border-color: #3a3a37; color: #e8e6e0; }
+    .result-box { background: #1a1a18; color: #9b9994; }
+    .result-box strong { color: #e8e6e0; }
+    .yarn-card { border-color: #3a3a37; }
+    .yarn-name { color: #e8e6e0; }
+    .yarn-meta { color: #9b9994; }
+    .tog { background: #1a1a18; border-color: #3a3a37; color: #9b9994; }
+    .tog.active { background: #3d2e0e; color: #FAC775; border-color: #63450f; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Knitting reference</h1>
+  <p>Needle sizes, yarn weights, unit conversions &amp; more</p>
+</header>
+
+<div class="card">
+
+  <div class="section" id="s1">
+    <div class="section-head" onclick="toggle('s1')">
+      <div class="section-title"><span class="dot"></span>Needle &amp; hook size converter</div>
+      <span class="chevron" id="s1-ch">&#8964;</span>
+    </div>
+    <div class="section-body" id="s1-b">
+      <div class="sub-title">Knitting needles</div>
+      <table>
+        <tr><th>Metric (mm)</th><th>US size</th><th>UK / old</th></tr>
+        <tr><td>2.0</td><td>0</td><td>14</td></tr>
+        <tr><td>2.25</td><td>1</td><td>13</td></tr>
+        <tr><td>2.5</td><td>—</td><td>12</td></tr>
+        <tr><td>2.75</td><td>2</td><td>12</td></tr>
+        <tr><td>3.0</td><td>—</td><td>11</td></tr>
+        <tr><td>3.25</td><td>3</td><td>10</td></tr>
+        <tr><td>3.5</td><td>4</td><td>—</td></tr>
+        <tr><td>3.75</td><td>5</td><td>9</td></tr>
+        <tr><td>4.0</td><td>6</td><td>8</td></tr>
+        <tr><td>4.5</td><td>7</td><td>7</td></tr>
+        <tr><td>5.0</td><td>8</td><td>6</td></tr>
+        <tr><td>5.5</td><td>9</td><td>5</td></tr>
+        <tr><td>6.0</td><td>10</td><td>4</td></tr>
+        <tr><td>6.5</td><td>10.5</td><td>3</td></tr>
+        <tr><td>7.0</td><td>—</td><td>2</td></tr>
+        <tr><td>7.5</td><td>—</td><td>1</td></tr>
+        <tr><td>8.0</td><td>11</td><td>0</td></tr>
+        <tr><td>9.0</td><td>13</td><td>00</td></tr>
+        <tr><td>10.0</td><td>15</td><td>000</td></tr>
+        <tr><td>12.0</td><td>17</td><td>—</td></tr>
+        <tr><td>15.0</td><td>19</td><td>—</td></tr>
+        <tr><td>19.0</td><td>35</td><td>—</td></tr>
+        <tr><td>25.0</td><td>50</td><td>—</td></tr>
+      </table>
+      <div class="divider"></div>
+      <div class="sub-title">Crochet hooks</div>
+      <table>
+        <tr><th>Metric (mm)</th><th>US size</th><th>UK size</th></tr>
+        <tr><td>2.0</td><td>B/1</td><td>14</td></tr>
+        <tr><td>2.5</td><td>C/2</td><td>12</td></tr>
+        <tr><td>3.0</td><td>D/3</td><td>10</td></tr>
+        <tr><td>3.5</td><td>E/4</td><td>9</td></tr>
+        <tr><td>4.0</td><td>G/6</td><td>8</td></tr>
+        <tr><td>4.5</td><td>7</td><td>7</td></tr>
+        <tr><td>5.0</td><td>H/8</td><td>6</td></tr>
+        <tr><td>5.5</td><td>I/9</td><td>5</td></tr>
+        <tr><td>6.0</td><td>J/10</td><td>4</td></tr>
+        <tr><td>6.5</td><td>K/10.5</td><td>3</td></tr>
+        <tr><td>8.0</td><td>L/11</td><td>0</td></tr>
+        <tr><td>9.0</td><td>M/13</td><td>00</td></tr>
+        <tr><td>10.0</td><td>N/15</td><td>000</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="section" id="s2">
+    <div class="section-head" onclick="toggle('s2')">
+      <div class="section-title"><span class="dot"></span>Yarn weight guide</div>
+      <span class="chevron" id="s2-ch">&#8964;</span>
+    </div>
+    <div class="section-body" id="s2-b">
+      <div class="yarn-card"><div class="yarn-card-head"><span class="yarn-num">0</span><span class="yarn-name">Lace</span></div><div class="yarn-meta"><span>Types: lace, 2-ply, cobweb</span><span>St/10cm: 33–40+</span><br><span>Hat: 175–200m</span><span>Scarf: 200m</span><span>Sweater: 800–1500m</span></div></div>
+      <div class="yarn-card"><div class="yarn-card-head"><span class="yarn-num">1</span><span class="yarn-name">Superfine</span></div><div class="yarn-meta"><span>Types: sock, fingering, 3-ply, baby</span><span>St/10cm: 27–32</span><br><span>Hat: 300–375m</span><span>Scarf: 350m</span><span>Sweater: 1500–3200m</span></div></div>
+      <div class="yarn-card"><div class="yarn-card-head"><span class="yarn-num">2</span><span class="yarn-name">Fine</span></div><div class="yarn-meta"><span>Types: sport, baby, 4-ply</span><span>St/10cm: 23–26</span><br><span>Hat: 250–350m</span><span>Scarf: 300m</span><span>Sweater: 1200–2500m</span></div></div>
+      <div class="yarn-card"><div class="yarn-card-head"><span class="yarn-num">3</span><span class="yarn-name">Light / DK</span></div><div class="yarn-meta"><span>Types: DK, light worsted, 5-6 ply</span><span>St/10cm: 21–24</span><br><span>Hat: 200–300m</span><span>Scarf: 250m</span><span>Sweater: 1000–2000m</span></div></div>
+      <div class="yarn-card"><div class="yarn-card-head"><span class="yarn-num">4</span><span class="yarn-name">Medium / Worsted</span></div><div class="yarn-meta"><span>Types: worsted, aran, 10-ply</span><span>St/10cm: 16–20</span><br><span>Hat: 150–250m</span><span>Scarf: 200m</span><span>Sweater: 800–1500m</span></div></div>
+      <div class="yarn-card"><div class="yarn-card-head"><span class="yarn-num">5</span><span class="yarn-name">Bulky</span></div><div class="yarn-meta"><span>Types: bulky, chunky, 12-ply</span><span>St/10cm: 12–15</span><br><span>Hat: 100–150m</span><span>Scarf: 150m</span><span>Sweater: 500–900m</span></div></div>
+      <div class="yarn-card"><div class="yarn-card-head"><span class="yarn-num">6</span><span class="yarn-name">Super bulky</span></div><div class="yarn-meta"><span>Types: super bulky, roving, 14-ply+</span><span>St/10cm: 7–11</span><br><span>Hat: 75–125m</span><span>Scarf: 125m</span><span>Sweater: 400–800m</span></div></div>
+      <div class="yarn-card"><div class="yarn-card-head"><span class="yarn-num">7</span><span class="yarn-name">Jumbo</span></div><div class="yarn-meta"><span>Types: jumbo, arm-knitting, roving</span><span>St/10cm: 6 or fewer</span><br><span>Hat: 50–75m</span><span>Scarf: 75m</span><span>Sweater: 200–400m</span></div></div>
+    </div>
+  </div>
+
+  <div class="section" id="s3">
+    <div class="section-head" onclick="toggle('s3')">
+      <div class="section-title"><span class="dot"></span>Unit converter</div>
+      <span class="chevron" id="s3-ch">&#8964;</span>
+    </div>
+    <div class="section-body" id="s3-b">
+      <div class="sub-title">Length</div>
+      <div class="converter-grid">
+        <div class="field"><label>Centimetres</label><input type="number" id="cm" placeholder="0" oninput="convLen('cm')" /></div>
+        <div class="field"><label>Inches</label><input type="number" id="in" placeholder="0" oninput="convLen('in')" /></div>
+        <div class="field"><label>Metres</label><input type="number" id="m" placeholder="0" oninput="convLen('m')" /></div>
+        <div class="field"><label>Yards</label><input type="number" id="yd" placeholder="0" oninput="convLen('yd')" /></div>
+      </div>
+      <div class="divider"></div>
+      <div class="sub-title">Weight</div>
+      <div class="converter-grid">
+        <div class="field"><label>Grams</label><input type="number" id="g" placeholder="0" oninput="convWt('g')" /></div>
+        <div class="field"><label>Ounces</label><input type="number" id="oz" placeholder="0" oninput="convWt('oz')" /></div>
+      </div>
+      <div class="divider"></div>
+      <div class="sub-title">Yarn yardage</div>
+      <div class="converter-grid">
+        <div class="field"><label>Metres</label><input type="number" id="ym" placeholder="0" oninput="convYarn('m')" /></div>
+        <div class="field"><label>Yards</label><input type="number" id="yyd" placeholder="0" oninput="convYarn('yd')" /></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="s4">
+    <div class="section-head" onclick="toggle('s4')">
+      <div class="section-title"><span class="dot"></span>Increase / decrease distribution</div>
+      <span class="chevron" id="s4-ch">&#8964;</span>
+    </div>
+    <div class="section-body" id="s4-b">
+      <div class="converter-grid">
+        <div class="field"><label>Current stitch count</label><input type="number" id="cur" placeholder="80" oninput="calcDist()" /></div>
+        <div class="field"><label>Desired stitch count</label><input type="number" id="des" placeholder="96" oninput="calcDist()" /></div>
+      </div>
+      <div class="result-box" id="dist-result"></div>
+      <div id="dist-vis" style="margin-top:12px;display:none">
+        <div class="sub-title" style="margin-bottom:6px">Visual preview (first 40 sts)</div>
+        <div class="increase-vis" id="vis-row"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="s5">
+    <div class="section-head" onclick="toggle('s5')">
+      <div class="section-title"><span class="dot"></span>Yarn ball converter</div>
+      <span class="chevron" id="s5-ch">&#8964;</span>
+    </div>
+    <div class="section-body" id="s5-b">
+      <div class="sub-title">Pattern yarn</div>
+      <div class="three-grid">
+        <div class="field"><label>Balls required</label><input type="number" id="p-balls" placeholder="4" oninput="calcBall()" /></div>
+        <div class="field"><label>Metres per 100g</label><input type="number" id="p-m100" placeholder="200" oninput="calcBall()" /></div>
+        <div class="field"><label>Grams per ball</label><input type="number" id="p-g" placeholder="100" oninput="calcBall()" /></div>
+      </div>
+      <div class="divider"></div>
+      <div class="sub-title">My yarn</div>
+      <div class="three-grid">
+        <div class="field"><label>Metres per ball</label><input type="number" id="m-mball" placeholder="175" oninput="calcBall()" /></div>
+        <div class="field"><label>Grams per ball</label><input type="number" id="m-g" placeholder="50" oninput="calcBall()" /></div>
+        <div class="field"></div>
+      </div>
+      <div class="result-box" id="ball-result"></div>
+    </div>
+  </div>
+
+  <div class="section" id="s6">
+    <div class="section-head" onclick="toggle('s6')">
+      <div class="section-title"><span class="dot"></span>Project yarn estimator</div>
+      <span class="chevron" id="s6-ch">&#8964;</span>
+    </div>
+    <div class="section-body" id="s6-b">
+      <div class="tog-row">
+        <div class="tog active" id="tog-m" onclick="setProjUnit('m')">Metric</div>
+        <div class="tog" id="tog-imp" onclick="setProjUnit('imp')">Imperial</div>
+      </div>
+      <div class="converter-grid">
+        <div class="field"><label id="pw-label">Width (cm)</label><input type="number" id="pw" placeholder="50" oninput="calcProj()" /></div>
+        <div class="field"><label id="ph-label">Length (cm)</label><input type="number" id="ph" placeholder="60" oninput="calcProj()" /></div>
+        <div class="field"><label id="pg-label">Gauge: sts per 10cm</label><input type="number" id="pg" placeholder="20" oninput="calcProj()" /></div>
+        <div class="field"><label id="prg-label">Gauge: rows per 10cm</label><input type="number" id="prg" placeholder="28" oninput="calcProj()" /></div>
+        <div class="field"><label id="pym-label">Metres per 100g</label><input type="number" id="pym" placeholder="200" oninput="calcProj()" /></div>
+        <div class="field"><label>Stitch type factor</label>
+          <select id="pst" onchange="calcProj()">
+            <option value="1">Plain stockinette (×1.0)</option>
+            <option value="1.1">Garter stitch (×1.1)</option>
+            <option value="1.25">Ribbing (×1.25)</option>
+            <option value="1.3">Seed / moss stitch (×1.3)</option>
+            <option value="1.5">Cables (×1.5)</option>
+            <option value="1.6">Colourwork (×1.6)</option>
+            <option value="1.8">Heavy texture (×1.8)</option>
+          </select>
+        </div>
+      </div>
+      <div class="result-box" id="proj-result"></div>
+    </div>
+  </div>
+
+</div>
+
+<footer>Knitting reference guide &middot; needles, yarn &amp; units</footer>
+
+<script>
+function toggle(id) {
+  const body = document.getElementById(id+'-b');
+  const ch = document.getElementById(id+'-ch');
+  const open = body.classList.toggle('open');
+  ch.classList.toggle('open', open);
+}
+
+function setN(id, val, skip) {
+  if (id !== skip) document.getElementById(id).value = val === null ? '' : val;
+}
+
+function convLen(src) {
+  const v = parseFloat(document.getElementById(src).value);
+  if (isNaN(v)) { ['cm','in','m','yd'].forEach(id => { if(id!==src) document.getElementById(id).value=''; }); return; }
+  let cm;
+  if (src==='cm') cm=v;
+  else if (src==='in') cm=v*2.54;
+  else if (src==='m') cm=v*100;
+  else if (src==='yd') cm=v*91.44;
+  setN('cm', +cm.toFixed(2), src);
+  setN('in', +(cm/2.54).toFixed(2), src);
+  setN('m', +(cm/100).toFixed(3), src);
+  setN('yd', +(cm/91.44).toFixed(3), src);
+}
+
+function convWt(src) {
+  const v = parseFloat(document.getElementById(src).value);
+  if (isNaN(v)) { ['g','oz'].forEach(id => { if(id!==src) document.getElementById(id).value=''; }); return; }
+  if (src==='g') setN('oz', +(v/28.3495).toFixed(3), src);
+  else setN('g', +(v*28.3495).toFixed(2), src);
+}
+
+function convYarn(src) {
+  const v = parseFloat(document.getElementById(src).value);
+  if (isNaN(v)) { ['ym','yyd'].forEach(id => { if(id!==src) document.getElementById(id).value=''; }); return; }
+  if (src==='m') setN('yyd', +(v*1.09361).toFixed(1), src);
+  else setN('ym', +(v/1.09361).toFixed(1), src);
+}
+
+function calcDist() {
+  const cur = parseInt(document.getElementById('cur').value) || 0;
+  const des = parseInt(document.getElementById('des').value) || 0;
+  const res = document.getElementById('dist-result');
+  const vis = document.getElementById('dist-vis');
+  if (!cur || !des || cur === des) { res.style.display='none'; vis.style.display='none'; return; }
+  const diff = Math.abs(des - cur);
+  const action = des > cur ? 'increase' : 'decrease';
+  const every = Math.floor(cur / diff);
+  const remainder = cur % diff;
+  const firstAt = Math.floor(every / 2) + 1;
+  res.innerHTML = `<strong>${diff} ${action}s</strong> needed. Work 1 ${action} every <strong>${every} sts</strong>${remainder > 0 ? `, then every ${every-1} sts for ${remainder} of them` : ''}. Place first ${action} after st <strong>${firstAt}</strong>.`;
+  res.style.display = 'block';
+  const row = document.getElementById('vis-row');
+  const preview = Math.min(cur, 40);
+  const actionSts = new Set();
+  let pos = firstAt;
+  for (let i = 0; i < diff && pos <= preview; i++) {
+    actionSts.add(Math.round(pos));
+    pos += (i < cur - remainder * every ? every : every - 1);
+  }
+  let html = '';
+  for (let i = 1; i <= preview; i++) {
+    html += actionSts.has(i)
+      ? `<span class="st action">${action==='increase'?'M':'×'}</span>`
+      : `<span class="st">V</span>`;
+  }
+  row.innerHTML = html;
+  vis.style.display = 'block';
+}
+
+function calcBall() {
+  const pballs = parseFloat(document.getElementById('p-balls').value) || 0;
+  const pm100 = parseFloat(document.getElementById('p-m100').value) || 0;
+  const pg = parseFloat(document.getElementById('p-g').value) || 100;
+  const mmball = parseFloat(document.getElementById('m-mball').value) || 0;
+  const mg = parseFloat(document.getElementById('m-g').value) || 50;
+  const res = document.getElementById('ball-result');
+  if (!pballs || !pm100 || !mmball) { res.style.display='none'; return; }
+  const totalM = pballs * (pm100 / 100) * pg;
+  const myBalls = Math.ceil(totalM / mmball);
+  const myGrams = myBalls * mg;
+  res.innerHTML = `Pattern needs <strong>${Math.round(totalM)}m</strong> total. You need <strong>${myBalls} balls</strong> of your yarn (${Math.round(myGrams)}g).`;
+  res.style.display = 'block';
+}
+
+let projUnit = 'm';
+function setProjUnit(u) {
+  projUnit = u;
+  document.getElementById('tog-m').className = 'tog' + (u==='m' ? ' active' : '');
+  document.getElementById('tog-imp').className = 'tog' + (u==='imp' ? ' active' : '');
+  const isM = u === 'm';
+  document.getElementById('pw-label').textContent = isM ? 'Width (cm)' : 'Width (in)';
+  document.getElementById('ph-label').textContent = isM ? 'Length (cm)' : 'Length (in)';
+  document.getElementById('pg-label').textContent = isM ? 'Gauge: sts per 10cm' : 'Gauge: sts per 4in';
+  document.getElementById('prg-label').textContent = isM ? 'Gauge: rows per 10cm' : 'Gauge: rows per 4in';
+  document.getElementById('pym-label').textContent = isM ? 'Metres per 100g' : 'Yards per 100g';
+  calcProj();
+}
+
+function calcProj() {
+  const w = parseFloat(document.getElementById('pw').value) || 0;
+  const h = parseFloat(document.getElementById('ph').value) || 0;
+  const g = parseFloat(document.getElementById('pg').value) || 0;
+  const rg = parseFloat(document.getElementById('prg').value) || 0;
+  const ym = parseFloat(document.getElementById('pym').value) || 0;
+  const factor = parseFloat(document.getElementById('pst').value) || 1;
+  const res = document.getElementById('proj-result');
+  if (!w || !h || !g || !rg || !ym) { res.style.display='none'; return; }
+  const isM = projUnit === 'm';
+  const unit = isM ? 10 : 4;
+  const simpleM = Math.round((w * h / (unit * unit)) * g * rg * 0.003 * factor * (isM ? 1 : 0.836));
+  const yards = Math.round(simpleM * 1.09361);
+  const grams = Math.ceil(simpleM / (ym / 100));
+  res.innerHTML = `Estimated <strong>~${simpleM}m</strong> (${yards} yds) of yarn. At ${ym}m/100g, that is roughly <strong>${grams}g</strong>.`;
+  res.style.display = 'block';
+}
+</script>
+</body>
+</html>
